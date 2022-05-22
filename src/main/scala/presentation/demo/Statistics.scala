@@ -121,19 +121,17 @@ object Statistics {
       state.get.map(_.aggregated)
 
     override def aggregate(): F[Unit] = forever(1.seconds) {
-      for {
-        s <- state.updateAndGet(state =>
-          state.copy(
-            aggregated = state.ongoing,
-            ongoing = state.ongoing.copy(
-              sentSinceLastReport = 0,
-              programCalledSinceLastReport = 0,
-              requestsCompletedIn = List(),
-              programCompletedIn = List()
-            )
+      state.updateAndGet(state =>
+        state.copy(
+          aggregated = state.ongoing,
+          ongoing = state.ongoing.copy(
+            sentSinceLastReport = 0,
+            programCalledSinceLastReport = 0,
+            requestsCompletedIn = List(),
+            programCompletedIn = List()
           )
         )
-      } yield ()
+      )
     }
 
     private def forever(delay: FiniteDuration)(effect: => F[_]): F[Unit] =
