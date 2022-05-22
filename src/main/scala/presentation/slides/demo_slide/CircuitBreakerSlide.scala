@@ -1,7 +1,7 @@
 package com.github.morotsman
 package presentation.slides.demo_slide
 
-import presentation.tools.{Input, NConsole, Slide}
+import presentation.tools.{Input, Slide}
 
 import cats.implicits._
 import cats.effect.implicits._
@@ -19,8 +19,7 @@ final case class CircuitBreakerSlide[F[_] : Temporal]
 ) extends Slide[F] {
 
   override def show(): F[Unit] =
-    (demoProgramExecutor.execute(), statistics.aggregate())
-      .parTupled.background.use { _ =>
+    (demoProgramExecutor.execute(), statistics.aggregate()).parTupled.background.use { _ =>
       animator.animate()
     }
 
