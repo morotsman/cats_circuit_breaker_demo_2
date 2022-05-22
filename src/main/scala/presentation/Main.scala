@@ -8,6 +8,7 @@ import presentation.tools.Presentation
 import presentation.demo.{MayhemState, SourceOfMayhem, Statistics, StatisticsState}
 import presentation.slides.demo_slide.animations.{Animator, AnimatorState}
 import presentation.tools.NConsoleInstances.IONConsole
+import presentation.slides.cascadingfailure.{CascadingFailure1, CascadingFailure2, CascadingFailure3}
 
 object Main extends IOApp.Simple {
 
@@ -17,6 +18,9 @@ object Main extends IOApp.Simple {
         Start[IO],
         Agenda[IO],
         DistributedSystem[IO],
+        CascadingFailure1[IO],
+        CascadingFailure2[IO],
+        CascadingFailure3[IO],
         circuitBreakerSlide
       ))
       _ <- presentation.start()
