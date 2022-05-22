@@ -3,7 +3,7 @@ package presentation
 
 import cats.effect._
 import presentation.slides.demo_slide.{CircuitBreakerSlide, ControlPanel, ControlPanelState, DemoProgramExecutor, DemoProgramExecutorState}
-import presentation.slides.{Agenda, Start}
+import presentation.slides.{Agenda, DistributedSystem, Start}
 import presentation.tools.Presentation
 import presentation.demo.{MayhemState, SourceOfMayhem, Statistics, StatisticsState}
 import presentation.slides.demo_slide.animations.{Animator, AnimatorState}
@@ -16,6 +16,7 @@ object Main extends IOApp.Simple {
       presentation <- Presentation.make[IO](List(
         Start[IO],
         Agenda[IO],
+        DistributedSystem[IO],
         circuitBreakerSlide
       ))
       _ <- presentation.start()
