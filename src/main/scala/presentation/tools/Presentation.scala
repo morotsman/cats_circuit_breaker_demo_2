@@ -2,7 +2,6 @@ package com.github.morotsman
 package presentation.tools
 
 import cats._
-import cats.implicits._
 import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
