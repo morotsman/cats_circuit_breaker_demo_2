@@ -52,10 +52,7 @@ object Presentation {
           _ <- loop(work, slide)
         } yield ()
 
-        for {
-          currentWork <- slides.head.show().start
-          _ <- loop(currentWork, 0)
-        } yield ()
+        slides.head.show().start >>= (loop(_, 0))
       }
     }
   )
