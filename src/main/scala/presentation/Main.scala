@@ -9,7 +9,7 @@ import presentation.tools.NConsoleInstances.IONConsole
 import presentation.slides.cascadingfailure.{CascadingFailure1, CascadingFailure2, CascadingFailure3}
 
 import com.github.morotsman.presentation.slides.cause.Cause
-import com.github.morotsman.presentation.slides.timeout.{Timeout1, Timeout2}
+import com.github.morotsman.presentation.slides.timeout.{DistributedSystem2, Timeout1, Timeout2}
 
 object Main extends IOApp.Simple {
 
@@ -24,7 +24,7 @@ object Main extends IOApp.Simple {
         CascadingFailure3[IO],
         Cause[IO],
         Timeout1[IO],
-        DistributedSystem[IO],
+        DistributedSystem2[IO],
         Timeout2[IO],
         circuitBreakerSlide
       ))
