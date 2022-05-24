@@ -5,7 +5,7 @@ import presentation.tools.{Input, NConsole, Slide}
 
 import cats.implicits._
 import cats.effect.implicits._
-import cats.effect.{IO, Ref, Temporal}
+import cats.effect.{Ref, Temporal}
 import presentation.demo.{MayhemState, SourceOfMayhem, Statistics, StatisticsState}
 import presentation.slides.demo_slide.animations.{Animator, AnimatorState}
 
