@@ -13,7 +13,6 @@ import presentation.slides.demo_slide.animations.AnimationState._
 import scala.concurrent.duration.DurationInt
 
 
-
 final case class AnimatorState
 (
   animationState: AnimationState,
@@ -52,6 +51,10 @@ object Animator {
           NOT_STARTED
         } else {
           if (
+            statisticsInfo.circuitBreakerState == CircuitBreakerState.CLOSED && (animatorState.lastCircuitBreakerState == CircuitBreakerState.HALF_OPEN || animatorState.lastCircuitBreakerState == CircuitBreakerState.OPEN)
+          ) {
+            TRANSFER_HALF_OPEN_TO_CLOSED
+          } else if (
             statisticsInfo.circuitBreakerState == CircuitBreakerState.CLOSED && !mayhemState.isFailing && demoProgramExecutorState.isStarted
           ) {
             CLOSED_SUCCEED
@@ -79,10 +82,6 @@ object Animator {
             statisticsInfo.circuitBreakerState == CircuitBreakerState.HALF_OPEN
           ) {
             HALF_OPEN
-          } else if (
-            statisticsInfo.circuitBreakerState == CircuitBreakerState.CLOSED && (animatorState.lastCircuitBreakerState == CircuitBreakerState.HALF_OPEN || animatorState.lastCircuitBreakerState == CircuitBreakerState.OPEN)
-          ) {
-            TRANSFER_HALF_OPEN_TO_CLOSED
           } else {
             UNKNOWN
           }
@@ -94,6 +93,14 @@ object Animator {
             animationState == TRANSFER_HALF_OPEN_TO_OPEN
         ) {
           for {
+            _ <- if (animationState == TRANSFER_HALF_OPEN_TO_CLOSED) { // Seems like the Circuit Breaker impl I use goes directly from OPEN to CLOSED, or maybe it report the state wrong?
+              showTransferAnimation(
+                AnimationMapper(TRANSFER_OPEN_TO_HALF_OPEN),
+                statisticsInfo,
+                mayhemState,
+                demoProgramExecutorState
+              )
+            } else Monad[F].unit
             _ <- showTransferAnimation(
               AnimationMapper(animationState),
               statisticsInfo,
@@ -118,17 +125,18 @@ object Animator {
             }
             frameToShow = if (updated) 0 else frame
             animation = AnimationMapper(animationState)
-            _ <- NConsole[F].writeString(
-              animation(frameToShow)(
-                statisticsInfo,
-                statisticsInfo.currentInput,
-                mayhemState,
-                demoProgramExecutorState.circuitBreakerConfiguration,
-                demoProgramExecutorState.isStarted
-              )) >>
-              Temporal[F].sleep(500.milli) >>
+            _ <-
               NConsole[F].clear() >>
-              animate(if (frameToShow < animation.size - 1) frameToShow + 1 else 0)
+                NConsole[F].writeString(
+                  animation(frameToShow)(
+                    statisticsInfo,
+                    statisticsInfo.currentInput,
+                    mayhemState,
+                    demoProgramExecutorState.circuitBreakerConfiguration,
+                    demoProgramExecutorState.isStarted
+                  )) >>
+                Temporal[F].sleep(500.milli) >>
+                animate(if (frameToShow < animation.size - 1) frameToShow + 1 else 0)
           } yield ()
         }
       } yield ()
@@ -146,8 +154,7 @@ object Animator {
     ): F[Unit] = if (frame >= animation.size) {
       Monad[F].unit
     } else {
-      Temporal[F].sleep(80.milli) >>
-        NConsole[F].clear() >>
+      NConsole[F].clear() >>
         NConsole[F].writeString(
           animation(frame)(
             statisticsInfo,
@@ -155,7 +162,8 @@ object Animator {
             mayhemState,
             demoProgramExecutorState.circuitBreakerConfiguration,
             demoProgramExecutorState.isStarted
-          )) >> 
+          )) >>
+        Temporal[F].sleep(80.milli) >>
         showTransferAnimation(
           animation,
           statisticsInfo,

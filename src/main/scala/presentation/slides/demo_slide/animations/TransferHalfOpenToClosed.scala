@@ -10,7 +10,7 @@ import com.github.morotsman.presentation.util.Colors.{ANSI_GREEN, ANSI_RESET}
 
 object TransferHalfOpenToClosed {
 
-  val staticAnimation = List(
+  val animation = List(
     (
       s: StatisticsInfo,
       p: Option[Input],

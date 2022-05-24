@@ -19,6 +19,7 @@ object AnimationState extends Enumeration {
     OPEN -> Open.animation,
     TRANSFER_OPEN_TO_HALF_OPEN -> TransferOpenToHalfOpen.animation,
     HALF_OPEN -> Open.animation,
-    TRANSFER_HALF_OPEN_TO_OPEN -> TransferHalfOpenToOpen.animation
+    TRANSFER_HALF_OPEN_TO_OPEN -> TransferHalfOpenToOpen.animation,
+    TRANSFER_HALF_OPEN_TO_CLOSED -> TransferHalfOpenToClosed.animation
   )
 }
