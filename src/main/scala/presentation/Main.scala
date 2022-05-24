@@ -2,11 +2,9 @@ package com.github.morotsman
 package presentation
 
 import cats.effect._
-import presentation.slides.demo_slide.{CircuitBreakerSlide, ControlPanel, ControlPanelState, DemoProgramExecutor, DemoProgramExecutorState}
+import presentation.slides.demo_slide.CircuitBreakerSlide
 import presentation.slides.{Agenda, DistributedSystem, Start}
 import presentation.tools.Presentation
-import presentation.demo.{MayhemState, SourceOfMayhem, Statistics, StatisticsState}
-import presentation.slides.demo_slide.animations.{Animator, AnimatorState}
 import presentation.tools.NConsoleInstances.IONConsole
 import presentation.slides.cascadingfailure.{CascadingFailure1, CascadingFailure2, CascadingFailure3}
 
