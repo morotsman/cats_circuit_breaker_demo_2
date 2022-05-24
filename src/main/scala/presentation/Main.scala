@@ -13,7 +13,7 @@ import presentation.slides.cascadingfailure.{CascadingFailure1, CascadingFailure
 object Main extends IOApp.Simple {
 
   override def run(): IO[Unit] = for {
-      circuitBreakerSlide <- createCircuitBreakerSlide()
+      circuitBreakerSlide <- CircuitBreakerSlide.make[IO]()
       presentation <- Presentation.make[IO](List(
         Start[IO],
         Agenda[IO],
@@ -26,29 +26,4 @@ object Main extends IOApp.Simple {
       _ <- presentation.start()
     } yield ()
 
-  private def createCircuitBreakerSlide(): IO[CircuitBreakerSlide[IO]] = for {
-    sourceOfMayhem <- Ref[IO].of(MayhemState.make()).map(SourceOfMayhem.make[IO])
-    statistics <- Ref[IO].of(StatisticsState.make()).map(Statistics.make[IO])
-    demoProgramExecutor <- Ref[IO].of(DemoProgramExecutorState.make[IO]()).flatMap(DemoProgramExecutor.make(
-      _,
-      sourceOfMayhem,
-      statistics
-    ))
-    controlPanel <- Ref[IO].of(ControlPanelState.make[IO]()).map(ControlPanel.make[IO](
-      _,
-      sourceOfMayhem,
-      demoProgramExecutor,
-      statistics
-    ))
-    animator <- Ref[IO].of(AnimatorState.make()).map(
-      Animator.make[IO](_, statistics, sourceOfMayhem, demoProgramExecutor)
-    )
-    circuitBreakerSlide = CircuitBreakerSlide[IO](
-      sourceOfMayhem,
-      statistics,
-      demoProgramExecutor,
-      controlPanel,
-      animator
-    )
-  } yield circuitBreakerSlide
 }
