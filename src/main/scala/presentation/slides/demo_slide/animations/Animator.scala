@@ -5,32 +5,14 @@ import cats.implicits._
 import cats.Monad
 import cats.effect.{Ref, Temporal}
 import presentation.demo.{CircuitBreakerState, MayhemState, SourceOfMayhem, Statistics, StatisticsInfo}
-import presentation.slides.demo_slide.{CircuitBreakerConfiguration, DemoProgramExecutor, DemoProgramExecutorState, animations}
+import presentation.slides.demo_slide.{CircuitBreakerConfiguration, DemoProgramExecutor, DemoProgramExecutorState}
 import presentation.tools.{Input, NConsole}
-import presentation.slides.demo_slide.animations.AnimationState.{AnimationMapper, AnimationState, CLOSED_FAILING, CLOSED_SUCCEED, NOT_STARTED, OPEN, TRANSFER_CLOSED_TO_OPEN, TRANSFER_OPEN_TO_HALF_OPEN, UNKNOWN, HALF_OPEN}
-import presentation.slides.demo_slide.animations.ClosedFailure.ClosedFailureAnimation
-import presentation.slides.demo_slide.animations.ClosedSuccess.ClosedSuccessAnimation
-import presentation.slides.demo_slide.animations.Static.staticAnimation
-
-import com.github.morotsman.presentation.demo.CircuitBreakerState.CircuitBreakerState
+import presentation.demo.CircuitBreakerState.CircuitBreakerState
+import presentation.slides.demo_slide.animations.AnimationState._
 
 import scala.concurrent.duration.DurationInt
 
-object AnimationState extends Enumeration {
-  type AnimationState = Value
-  val NOT_STARTED, UNKNOWN, CLOSED_SUCCEED, CLOSED_FAILING, TRANSFER_CLOSED_TO_OPEN, OPEN, TRANSFER_OPEN_TO_HALF_OPEN, HALF_OPEN, TRANSFER_HALF_OPEN_TO_OPEN, TRANSFER_HALF_OPEN_TO_CLOSED = Value
 
-  val AnimationMapper = Map(
-    NOT_STARTED -> staticAnimation,
-    UNKNOWN -> staticAnimation,
-    CLOSED_SUCCEED -> ClosedSuccessAnimation,
-    CLOSED_FAILING -> ClosedFailureAnimation,
-    TRANSFER_CLOSED_TO_OPEN -> TransferClosedToOpen.animation,
-    OPEN -> Open.animation,
-    TRANSFER_OPEN_TO_HALF_OPEN -> TransferOpenToHalfOpen.animation,
-    HALF_OPEN -> Open.animation
-  )
-}
 
 final case class AnimatorState
 (
@@ -82,6 +64,10 @@ object Animator {
           ) {
             TRANSFER_CLOSED_TO_OPEN
           } else if (
+            statisticsInfo.circuitBreakerState == CircuitBreakerState.OPEN && animatorState.lastCircuitBreakerState == CircuitBreakerState.HALF_OPEN
+          ) {
+            TRANSFER_HALF_OPEN_TO_OPEN
+          } else if (
             statisticsInfo.circuitBreakerState == CircuitBreakerState.OPEN
           ) {
             OPEN
@@ -89,17 +75,23 @@ object Animator {
             statisticsInfo.circuitBreakerState == CircuitBreakerState.HALF_OPEN && animatorState.lastCircuitBreakerState == CircuitBreakerState.OPEN
           ) {
             TRANSFER_OPEN_TO_HALF_OPEN
-          }  else if (
+          } else if (
             statisticsInfo.circuitBreakerState == CircuitBreakerState.HALF_OPEN
           ) {
             HALF_OPEN
-          }else {
+          } else if (
+            statisticsInfo.circuitBreakerState == CircuitBreakerState.CLOSED && (animatorState.lastCircuitBreakerState == CircuitBreakerState.HALF_OPEN || animatorState.lastCircuitBreakerState == CircuitBreakerState.OPEN)
+          ) {
+            TRANSFER_HALF_OPEN_TO_CLOSED
+          } else {
             UNKNOWN
           }
         }
         _ <- if (
           animationState == TRANSFER_CLOSED_TO_OPEN ||
-            animationState == TRANSFER_OPEN_TO_HALF_OPEN
+            animationState == TRANSFER_OPEN_TO_HALF_OPEN ||
+            animationState == TRANSFER_HALF_OPEN_TO_CLOSED ||
+            animationState == TRANSFER_HALF_OPEN_TO_OPEN
         ) {
           for {
             _ <- showTransferAnimation(
@@ -163,7 +155,7 @@ object Animator {
             mayhemState,
             demoProgramExecutorState.circuitBreakerConfiguration,
             demoProgramExecutorState.isStarted
-          )) >>
+          )) >> 
         showTransferAnimation(
           animation,
           statisticsInfo,
