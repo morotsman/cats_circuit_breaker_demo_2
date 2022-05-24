@@ -7,7 +7,7 @@ import cats.effect.{Ref, Temporal}
 import presentation.demo.{CircuitBreakerState, MayhemState, SourceOfMayhem, Statistics, StatisticsInfo}
 import presentation.slides.demo_slide.{CircuitBreakerConfiguration, DemoProgramExecutor, DemoProgramExecutorState, animations}
 import presentation.tools.{Input, NConsole}
-import presentation.slides.demo_slide.animations.AnimationState.{AnimationMapper, AnimationState, CLOSED_FAILING, CLOSED_SUCCEED, NOT_STARTED, TRANSFER_CLOSED_TO_OPEN, UNKNOWN}
+import presentation.slides.demo_slide.animations.AnimationState.{AnimationMapper, AnimationState, CLOSED_FAILING, CLOSED_SUCCEED, NOT_STARTED, TRANSFER_CLOSED_TO_OPEN, UNKNOWN, OPEN}
 import presentation.slides.demo_slide.animations.ClosedFailure.ClosedFailureAnimation
 import presentation.slides.demo_slide.animations.ClosedSuccess.ClosedSuccessAnimation
 import presentation.slides.demo_slide.animations.Static.staticAnimation
@@ -25,7 +25,8 @@ object AnimationState extends Enumeration {
     UNKNOWN -> staticAnimation,
     CLOSED_SUCCEED -> ClosedSuccessAnimation,
     CLOSED_FAILING -> ClosedFailureAnimation,
-    TRANSFER_CLOSED_TO_OPEN -> TransferClosedToOpen.animation
+    TRANSFER_CLOSED_TO_OPEN -> TransferClosedToOpen.animation,
+    OPEN -> Open.animation
   )
 }
 
@@ -78,6 +79,10 @@ object Animator {
             statisticsInfo.circuitBreakerState == CircuitBreakerState.OPEN && animatorState.lastCircuitBreakerState == CircuitBreakerState.CLOSED
           ) {
             TRANSFER_CLOSED_TO_OPEN
+          } else if (
+            statisticsInfo.circuitBreakerState == CircuitBreakerState.OPEN
+          ) {
+            OPEN
           } else {
             UNKNOWN
           }

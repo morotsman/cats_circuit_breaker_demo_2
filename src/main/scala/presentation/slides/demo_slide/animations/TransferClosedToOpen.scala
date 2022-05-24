@@ -53,7 +53,7 @@ object TransferClosedToOpen {
          |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
          |
          |
-         |""".replaceAll("1", ANSI_GREEN + "*" + ANSI_RESET).stripMargin,
+         |""".replaceAll("1", ANSI_RED + "*" + ANSI_RESET).stripMargin,
     (
       s: StatisticsInfo,
       p: Option[Input],
@@ -97,7 +97,7 @@ object TransferClosedToOpen {
              |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
              |
              |
-             |""".replaceAll("1", ANSI_GREEN + "*" + ANSI_RESET).stripMargin,
+             |""".replaceAll("1", ANSI_RED + "*" + ANSI_RESET).stripMargin,
     (
       s: StatisticsInfo,
       p: Option[Input],
@@ -141,7 +141,7 @@ object TransferClosedToOpen {
              |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
              |
              |
-             |""".replaceAll("1", ANSI_GREEN + "*" + ANSI_RESET).stripMargin,
+             |""".replaceAll("1", ANSI_RED + "*" + ANSI_RESET).stripMargin,
     (
       s: StatisticsInfo,
       p: Option[Input],
@@ -185,7 +185,7 @@ object TransferClosedToOpen {
              |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
              |
              |
-             |""".replaceAll("1", ANSI_GREEN + "*" + ANSI_RESET).stripMargin,
+             |""".replaceAll("1", ANSI_RED + "*" + ANSI_RESET).stripMargin,
     (
       s: StatisticsInfo,
       p: Option[Input],
@@ -229,7 +229,7 @@ object TransferClosedToOpen {
              |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
              |
              |
-             |""".replaceAll("1", ANSI_GREEN + "*" + ANSI_RESET).stripMargin,
+             |""".replaceAll("1", ANSI_RED + "*" + ANSI_RESET).stripMargin,
     (
       s: StatisticsInfo,
       p: Option[Input],
@@ -273,7 +273,7 @@ object TransferClosedToOpen {
              |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
              |
              |
-             |""".replaceAll("1", ANSI_GREEN + "*" + ANSI_RESET).stripMargin,
+             |""".replaceAll("1", ANSI_RED + "*" + ANSI_RESET).stripMargin,
     (
       s: StatisticsInfo,
       p: Option[Input],
@@ -317,7 +317,7 @@ object TransferClosedToOpen {
              |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
              |
              |
-             |""".replaceAll("1", ANSI_GREEN + "*" + ANSI_RESET).stripMargin,
+             |""".replaceAll("1", ANSI_RED + "*" + ANSI_RESET).stripMargin,
     (
       s: StatisticsInfo,
       p: Option[Input],
@@ -361,7 +361,7 @@ object TransferClosedToOpen {
              |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
              |
              |
-             |""".replaceAll("1", ANSI_GREEN + "*" + ANSI_RESET).stripMargin,
+             |""".replaceAll("1", ANSI_RED + "*" + ANSI_RESET).stripMargin,
     (
       s: StatisticsInfo,
       p: Option[Input],
@@ -405,7 +405,7 @@ object TransferClosedToOpen {
              |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
              |
              |
-             |""".replaceAll("1", ANSI_GREEN + "*" + ANSI_RESET).stripMargin,
+             |""".replaceAll("1", ANSI_RED + "*" + ANSI_RESET).stripMargin,
     (
       s: StatisticsInfo,
       p: Option[Input],
@@ -449,7 +449,7 @@ object TransferClosedToOpen {
              |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
              |
              |
-             |""".replaceAll("1", ANSI_GREEN + "*" + ANSI_RESET).stripMargin,
+             |""".replaceAll("1", ANSI_RED + "*" + ANSI_RESET).stripMargin,
     (
       s: StatisticsInfo,
       p: Option[Input],
@@ -493,7 +493,7 @@ object TransferClosedToOpen {
              |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
              |
              |
-             |""".replaceAll("1", ANSI_GREEN + "*" + ANSI_RESET).stripMargin,
+             |""".replaceAll("1", ANSI_RED + "*" + ANSI_RESET).stripMargin,
     (
       s: StatisticsInfo,
       p: Option[Input],
@@ -537,7 +537,7 @@ object TransferClosedToOpen {
              |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
              |
              |
-             |""".replaceAll("1", ANSI_GREEN + "*" + ANSI_RESET).stripMargin
+             |""".replaceAll("1", ANSI_RED + "*" + ANSI_RESET).stripMargin
 
 
 
