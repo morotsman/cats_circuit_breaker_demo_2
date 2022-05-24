@@ -60,7 +60,6 @@ object NConsole {
 
         override def writeString(s: String): F[Unit] = Sync[F].blocking {
           println(s)
-          println(s"Thread: ${Thread.currentThread().getName}")
         }
 
         override def clear(): F[Unit] = Sync[F].blocking {
