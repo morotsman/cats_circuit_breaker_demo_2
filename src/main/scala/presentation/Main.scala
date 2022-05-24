@@ -8,6 +8,8 @@ import presentation.tools.Presentation
 import presentation.tools.NConsoleInstances.IONConsole
 import presentation.slides.cascadingfailure.{CascadingFailure1, CascadingFailure2, CascadingFailure3}
 
+import com.github.morotsman.presentation.slides.timeout.{Timeout1, Timeout2}
+
 object Main extends IOApp.Simple {
 
   override def run(): IO[Unit] = for {
@@ -19,6 +21,9 @@ object Main extends IOApp.Simple {
         CascadingFailure1[IO],
         CascadingFailure2[IO],
         CascadingFailure3[IO],
+        Timeout1[IO],
+        DistributedSystem[IO],
+        Timeout2[IO],
         circuitBreakerSlide
       ))
       _ <- presentation.start()
