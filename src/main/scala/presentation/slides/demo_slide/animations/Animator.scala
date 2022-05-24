@@ -7,7 +7,7 @@ import cats.effect.{Ref, Temporal}
 import presentation.demo.{CircuitBreakerState, MayhemState, SourceOfMayhem, Statistics, StatisticsInfo}
 import presentation.slides.demo_slide.{CircuitBreakerConfiguration, DemoProgramExecutor, DemoProgramExecutorState, animations}
 import presentation.tools.{Input, NConsole}
-import presentation.slides.demo_slide.animations.AnimationState.{AnimationMapper, AnimationState, CLOSED_FAILING, CLOSED_SUCCEED, NOT_STARTED, TRANSFER_CLOSED_TO_OPEN, UNKNOWN, OPEN}
+import presentation.slides.demo_slide.animations.AnimationState.{AnimationMapper, AnimationState, CLOSED_FAILING, CLOSED_SUCCEED, NOT_STARTED, OPEN, TRANSFER_CLOSED_TO_OPEN, TRANSFER_OPEN_TO_HALF_OPEN, UNKNOWN, HALF_OPEN}
 import presentation.slides.demo_slide.animations.ClosedFailure.ClosedFailureAnimation
 import presentation.slides.demo_slide.animations.ClosedSuccess.ClosedSuccessAnimation
 import presentation.slides.demo_slide.animations.Static.staticAnimation
@@ -26,7 +26,9 @@ object AnimationState extends Enumeration {
     CLOSED_SUCCEED -> ClosedSuccessAnimation,
     CLOSED_FAILING -> ClosedFailureAnimation,
     TRANSFER_CLOSED_TO_OPEN -> TransferClosedToOpen.animation,
-    OPEN -> Open.animation
+    OPEN -> Open.animation,
+    TRANSFER_OPEN_TO_HALF_OPEN -> TransferOpenToHalfOpen.animation,
+    HALF_OPEN -> Open.animation
   )
 }
 
@@ -83,11 +85,22 @@ object Animator {
             statisticsInfo.circuitBreakerState == CircuitBreakerState.OPEN
           ) {
             OPEN
-          } else {
+          } else if (
+            statisticsInfo.circuitBreakerState == CircuitBreakerState.HALF_OPEN && animatorState.lastCircuitBreakerState == CircuitBreakerState.OPEN
+          ) {
+            TRANSFER_OPEN_TO_HALF_OPEN
+          }  else if (
+            statisticsInfo.circuitBreakerState == CircuitBreakerState.HALF_OPEN
+          ) {
+            HALF_OPEN
+          }else {
             UNKNOWN
           }
         }
-        _ <- if (animationState == TRANSFER_CLOSED_TO_OPEN) {
+        _ <- if (
+          animationState == TRANSFER_CLOSED_TO_OPEN ||
+            animationState == TRANSFER_OPEN_TO_HALF_OPEN
+        ) {
           for {
             _ <- showTransferAnimation(
               AnimationMapper(animationState),
