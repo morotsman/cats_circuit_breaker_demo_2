@@ -17,7 +17,7 @@ object Main extends IOApp.Simple {
   override def run(): IO[Unit] = for {
       circuitBreakerSlide <- CircuitBreakerSlide.make[IO]()
       presentation <- Presentation.make[IO](List(
-        Start[IO],
+        /*Start[IO],
         Agenda[IO],
         DistributedSystem[IO],
         CascadingFailure1[IO],
@@ -36,6 +36,8 @@ object Main extends IOApp.Simple {
         ThePattern3[IO],
         ThePattern4[IO],
         ThePattern5[IO],
+
+         */
         circuitBreakerSlide
       ))
       _ <- presentation.start()
