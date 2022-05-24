@@ -9,7 +9,7 @@ import presentation.tools.NConsoleInstances.IONConsole
 import presentation.slides.cascadingfailure.{CascadingFailure1, CascadingFailure2, CascadingFailure3}
 
 import com.github.morotsman.presentation.slides.cause.Cause
-import com.github.morotsman.presentation.slides.circuitbreaker.{CircuitBreakerDoBetter1, CircuitBreakerDoBetter2}
+import com.github.morotsman.presentation.slides.circuitbreaker.{CircuitBreakerDoBetter1, CircuitBreakerDoBetter2, ThePattern1, ThePattern2, ThePattern3, ThePattern4}
 import com.github.morotsman.presentation.slides.timeout.{DistributedSystem2, Timeout1, Timeout2, TimeoutDoBetter1, TimeoutDoBetter2}
 
 object Main extends IOApp.Simple {
@@ -31,6 +31,10 @@ object Main extends IOApp.Simple {
         Timeout2[IO],
         CircuitBreakerDoBetter1[IO],
         CircuitBreakerDoBetter2[IO],
+        ThePattern1[IO],
+        ThePattern2[IO],
+        ThePattern3[IO],
+        ThePattern4[IO],
         circuitBreakerSlide
       ))
       _ <- presentation.start()
