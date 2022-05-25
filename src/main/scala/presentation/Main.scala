@@ -3,13 +3,13 @@ package presentation
 
 import cats.effect._
 import presentation.slides.demo_slide.CircuitBreakerSlide
-import presentation.slides.{Agenda, DistributedSystem, Start}
+import presentation.slides.{Agenda, DistributedSystem, References, Start}
 import presentation.tools.Presentation
 import presentation.tools.NConsoleInstances.IONConsole
 import presentation.slides.cascadingfailure.{CascadingFailure1, CascadingFailure2, CascadingFailure3}
 
 import com.github.morotsman.presentation.slides.cause.Cause
-import com.github.morotsman.presentation.slides.circuitbreaker.{CircuitBreakerDoBetter1, CircuitBreakerDoBetter2, ThePattern1, ThePattern2, ThePattern3, ThePattern4, ThePattern5}
+import com.github.morotsman.presentation.slides.circuitbreaker.{CircuitBreakerDoBetter1, CircuitBreakerDoBetter2, InTheCode, StateOfTheSystemAfterCircuitBreaker, ThePattern1, ThePattern2, ThePattern3, ThePattern4, ThePattern5}
 import com.github.morotsman.presentation.slides.timeout.{DistributedSystem2, Timeout1, Timeout2, TimeoutDoBetter1, TimeoutDoBetter2}
 
 object Main extends IOApp.Simple {
@@ -17,7 +17,7 @@ object Main extends IOApp.Simple {
   override def run(): IO[Unit] = for {
       circuitBreakerSlide <- CircuitBreakerSlide.make[IO]()
       presentation <- Presentation.make[IO](List(
-        /*Start[IO],
+        Start[IO],
         Agenda[IO],
         DistributedSystem[IO],
         CascadingFailure1[IO],
@@ -36,9 +36,10 @@ object Main extends IOApp.Simple {
         ThePattern3[IO],
         ThePattern4[IO],
         ThePattern5[IO],
-
-         */
-        circuitBreakerSlide
+        circuitBreakerSlide,
+        StateOfTheSystemAfterCircuitBreaker[IO],
+        InTheCode[IO],
+        References[IO]
       ))
       _ <- presentation.start()
     } yield ()
