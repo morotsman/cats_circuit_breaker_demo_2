@@ -85,7 +85,7 @@ object Animator2 {
 
           }
 
-          def showStateAnimation(animationState: AnimationState, frame: Int = 0): F[Unit] = for {
+          def showStateAnimation(animationState: AnimationState, frame: Int = 0, delay: Double = 500): F[Unit] = for {
             demoProgramExecutorState <- demoProgramExecutor.getState()
             statisticsInfo <- statistics.getStatisticsInfo()
             mayhemState <- sourceOfMayhem.mayhemState()
@@ -99,10 +99,11 @@ object Animator2 {
                   demoProgramExecutorState.circuitBreakerConfiguration,
                   demoProgramExecutorState.isStarted
                 ))
-            _ <- Temporal[F].sleep(500.milli)
+            _ <- Temporal[F].sleep(delay.toInt.milli)
             _ <- showStateAnimation(
               animationState,
-              frame = if (frame + 1 == animation.size) 0 else frame + 1
+              frame = if (frame + 1 == animation.size) 0 else frame + 1,
+              delay = if (frame + 1 == animation.size) 500 else delay / 1.2
             )
           } yield ()
 
