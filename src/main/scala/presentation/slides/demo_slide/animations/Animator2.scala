@@ -5,10 +5,10 @@ import cats.effect.implicits._
 import cats.implicits._
 import cats.Monad
 import cats.effect.{Fiber, Ref, Spawn, Temporal}
-import presentation.demo.{CircuitBreakerState, CircuitBreakerStateListener, MayhemState, SourceOfMayhem, Statistics, StatisticsInfo, StatisticsListener}
-import presentation.slides.demo_slide.{CircuitBreakerConfiguration, DemoProgramExecutor, DemoProgramExecutorState}
-import presentation.tools.{Input, NConsole}
-import presentation.demo.CircuitBreakerState.{CLOSED, CircuitBreakerState}
+import presentation.demo.{CircuitBreakerState, CircuitBreakerStateListener, SourceOfMayhem, Statistics, StatisticsInfo, StatisticsListener}
+import presentation.slides.demo_slide.DemoProgramExecutor
+import presentation.tools.NConsole
+import presentation.demo.CircuitBreakerState.CircuitBreakerState
 import presentation.slides.demo_slide.animations.AnimationState.{AnimationState, _}
 
 import cats.effect.std.Queue
