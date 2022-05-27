@@ -121,7 +121,7 @@ object Animator2 {
               maybeCancelable <- if (transfer)
                 animation.as(None)
               else
-                animation.start.map(Some(_)) // Todo, this causes the program to not be able to cancel
+                animation.start.map(Some(_))
               _ <- loop(maybeCancelable)
             } yield ()
 
