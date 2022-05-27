@@ -39,7 +39,8 @@ trait Animator2[F[_]] extends StatisticsListener[F] with CircuitBreakerStateList
 case class Event[F[_]]
 (
   isTransferAnimation: Boolean,
-  animation: F[Unit]
+  animation: F[Unit],
+  stop: Boolean = false
 )
 
 object Animator2 {
@@ -59,8 +60,9 @@ object Animator2 {
           override def stop(): F[Unit] =
             queue.offer(Event[F](
               isTransferAnimation = true,
-              Monad[F].unit)
-            )
+              Monad[F].unit,
+              stop = true
+            ))
 
           override def statisticsUpdated(statisticsInfo: StatisticsInfo): F[Unit] = for {
             animatorState <- state.get
@@ -147,8 +149,8 @@ object Animator2 {
               ) >>
                 queue.offer(Event[F](
                   isTransferAnimation = false,
-                  showStateAnimation(OPEN))
-                )
+                  showStateAnimation(OPEN)
+                ))
             } else {
               queue.offer(Event[F](
                 isTransferAnimation = true,
@@ -156,8 +158,8 @@ object Animator2 {
               ) >>
                 queue.offer(Event[F](
                   isTransferAnimation = false,
-                  showStateAnimation(OPEN))
-                )
+                  showStateAnimation(OPEN)
+                ))
             }
             _ <- state.modify(s => (s.copy(
               currentCircuitBreakerState = circuitBreakerState
@@ -168,18 +170,24 @@ object Animator2 {
             def loop(maybeCancelableAnimation: Option[Fiber[F, Throwable, Unit]]): F[Unit] = for {
               event <- queue.take
               _ <- maybeCancelableAnimation.traverse(_.cancel)
-              maybeCancelable <- if (event.isTransferAnimation)
-                event.animation.as(None)
-              else
-                event.animation.start.map(Some(_))
-              _ <- loop(maybeCancelable)
+              _ <- if (event.stop) {
+                Monad[F].unit
+              } else {
+                for {
+                  maybeCancelable <- if (event.isTransferAnimation)
+                    event.animation.as(None)
+                  else
+                    event.animation.start.map(Some(_))
+                  _ <- loop(maybeCancelable)
+                } yield ()
+              }
             } yield ()
 
             for {
               _ <- queue.offer(Event[F](
                 isTransferAnimation = false,
-                showStateAnimation(NOT_STARTED))
-              )
+                showStateAnimation(NOT_STARTED)
+              ))
               _ <- loop(None)
             } yield ()
 
