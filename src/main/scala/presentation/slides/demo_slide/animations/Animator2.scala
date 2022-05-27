@@ -17,12 +17,16 @@ import scala.concurrent.duration.DurationInt
 
 final case class AnimatorState2
 (
-  lastCircuitBreakerState: CircuitBreakerState
+  currentCircuitBreakerState: CircuitBreakerState,
+  isStarted: Boolean,
+  isFailing: Boolean
 )
 
 object AnimatorState2 {
   def make(): AnimatorState2 = AnimatorState2(
-    lastCircuitBreakerState = CircuitBreakerState.CLOSED
+    currentCircuitBreakerState = CircuitBreakerState.CLOSED,
+    isStarted = false,
+    isFailing = false
   )
 }
 
@@ -44,8 +48,46 @@ object Animator2 {
       animator =
         new Animator2[F] {
 
-          override def statisticsUpdated(statisticsInfo: StatisticsInfo): F[Unit] =
-            Monad[F].unit
+          override def statisticsUpdated(statisticsInfo: StatisticsInfo): F[Unit] = for {
+            animatorState <- state.get
+            demoProgramExecutorState <- demoProgramExecutor.getState()
+
+            _ <- if (!animatorState.isFailing && !animatorState.isStarted && demoProgramExecutorState.isStarted) {
+              queue.offer((false, showStateAnimation(CLOSED_SUCCEED))) >> state.modify(s => (s.copy(
+                isStarted = true
+              ), s))
+            } else if (animatorState.isFailing && !animatorState.isStarted && demoProgramExecutorState.isStarted) {
+              queue.offer((false, showStateAnimation(CLOSED_FAILING))) >> state.modify(s => (s.copy(
+                isStarted = true
+              ), s))
+            } else if (animatorState.isStarted && !demoProgramExecutorState.isStarted) {
+              queue.offer((false, showStateAnimation(NOT_STARTED))) >> state.modify(s => (s.copy(
+                isStarted = false
+              ), s))
+            } else {
+              Monad[F].unit
+            }
+            mayhemState <- sourceOfMayhem.mayhemState()
+            _ <- if (
+              animatorState.currentCircuitBreakerState == CircuitBreakerState.CLOSED &&
+                animatorState.isStarted &&
+                animatorState.isFailing &&
+                !mayhemState.isFailing) {
+              queue.offer((false, showStateAnimation(CLOSED_SUCCEED))) >> state.modify(s => (s.copy(
+                isFailing = false
+              ), s))
+            } else if (
+              animatorState.currentCircuitBreakerState == CircuitBreakerState.CLOSED &&
+                animatorState.isStarted &&
+                !animatorState.isFailing &&
+                mayhemState.isFailing) {
+              queue.offer((false, showStateAnimation(CLOSED_FAILING))) >> state.modify(s => (s.copy(
+                isFailing = true
+              ), s))
+            } else {
+              Monad[F].unit
+            }
+          } yield ()
 
           override def circuitBreakerStateUpdated(circuitBreakerState: CircuitBreakerState): F[Unit] = for {
             animatorState <- state.get
@@ -55,7 +97,7 @@ object Animator2 {
             } else if (circuitBreakerState == CircuitBreakerState.HALF_OPEN) {
               queue.offer((true, showTransitionAnimation(TRANSFER_OPEN_TO_HALF_OPEN))) >>
                 queue.offer((false, showStateAnimation(HALF_OPEN)))
-            } else if (circuitBreakerState == CircuitBreakerState.OPEN && animatorState.lastCircuitBreakerState == CircuitBreakerState.HALF_OPEN) {
+            } else if (circuitBreakerState == CircuitBreakerState.OPEN && animatorState.currentCircuitBreakerState == CircuitBreakerState.HALF_OPEN) {
               queue.offer((true, showTransitionAnimation(TRANSFER_HALF_OPEN_TO_OPEN))) >>
                 queue.offer((false, showStateAnimation(OPEN)))
             } else {
@@ -63,7 +105,7 @@ object Animator2 {
                 queue.offer((false, showStateAnimation(OPEN)))
             }
             _ <- state.modify(s => (s.copy(
-              lastCircuitBreakerState = circuitBreakerState
+              currentCircuitBreakerState = circuitBreakerState
             ), s))
           } yield ()
 
@@ -103,7 +145,7 @@ object Animator2 {
             _ <- showStateAnimation(
               animationState,
               frame = if (frame + 1 == animation.size) 0 else frame + 1,
-              delay = if (frame + 1 == animation.size) 500 else delay / 1.2
+              delay = if (frame + 1 == animation.size) 500 else delay / 1.1
             )
           } yield ()
 
