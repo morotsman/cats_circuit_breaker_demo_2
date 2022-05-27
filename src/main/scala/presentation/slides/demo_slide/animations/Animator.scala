@@ -212,7 +212,7 @@ object Animator {
               _ <- showTransitionAnimation(
                 animationState,
                 frame + 1,
-                delay = delay / 1.1
+                delay = delay / 1.2
               )
             } yield ()
           }
