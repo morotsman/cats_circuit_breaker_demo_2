@@ -4,7 +4,7 @@ package presentation.slides.demo_slide.animations
 import cats.effect.implicits._
 import cats.implicits._
 import cats.Monad
-import cats.effect.{Fiber, Ref, Spawn, Temporal}
+import cats.effect.{Fiber, Ref, Temporal}
 import presentation.demo.{CircuitBreakerState, CircuitBreakerStateListener, SourceOfMayhem, Statistics, StatisticsInfo, StatisticsListener}
 import presentation.slides.demo_slide.DemoProgramExecutor
 import presentation.tools.NConsole
@@ -51,7 +51,7 @@ case class PoisonPill() extends Event
 
 object Animator2 {
 
-  def make[F[_] : Temporal : NConsole : Spawn]
+  def make[F[_] : Temporal : NConsole]
   (
     state: Ref[F, AnimatorState2],
     statistics: Statistics[F],
