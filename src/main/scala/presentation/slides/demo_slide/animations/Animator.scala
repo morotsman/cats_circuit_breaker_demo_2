@@ -15,7 +15,7 @@ import cats.effect.std.Queue
 
 import scala.concurrent.duration.DurationInt
 
-final case class AnimatorState2
+final case class AnimatorState
 (
   currentCircuitBreakerState: CircuitBreakerState,
   isStarted: Boolean,
@@ -23,8 +23,8 @@ final case class AnimatorState2
   currentAnimationState: AnimationState
 )
 
-object AnimatorState2 {
-  def make(): AnimatorState2 = AnimatorState2(
+object AnimatorState {
+  def make(): AnimatorState = AnimatorState(
     currentCircuitBreakerState = CircuitBreakerState.CLOSED,
     isStarted = false,
     isFailing = false,
@@ -32,7 +32,7 @@ object AnimatorState2 {
   )
 }
 
-trait Animator2[F[_]] extends StatisticsListener[F] with CircuitBreakerStateListener[F] {
+trait Animator[F[_]] extends StatisticsListener[F] with CircuitBreakerStateListener[F] {
   def animate(): F[Unit]
 
   def stop(): F[Unit]
@@ -51,19 +51,19 @@ case class TransitionEvent(
 case class PoisonPill() extends Event
 
 
-object Animator2 {
+object Animator {
 
   def make[F[_] : Temporal : NConsole]
   (
-    state: Ref[F, AnimatorState2],
+    state: Ref[F, AnimatorState],
     statistics: Statistics[F],
     sourceOfMayhem: SourceOfMayhem[F],
     demoProgramExecutor: DemoProgramExecutor[F],
-  ): F[Animator2[F]] =
+  ): F[Animator[F]] =
     for {
       queue <- Queue.unbounded[F, Event]
       animator =
-        new Animator2[F] {
+        new Animator[F] {
 
           override def stop(): F[Unit] =
             queue.offer(PoisonPill())

@@ -7,7 +7,7 @@ import cats.implicits._
 import cats.effect.implicits._
 import cats.effect.{Ref, Temporal}
 import presentation.demo.{MayhemState, SourceOfMayhem, Statistics, StatisticsState}
-import presentation.slides.demo_slide.animations.{Animator2, AnimatorState2}
+import presentation.slides.demo_slide.animations.{Animator, AnimatorState}
 
 object CircuitBreakerSlide {
   def make[F[_] : Temporal : NConsole](): F[Slide[F]] = for {
@@ -24,8 +24,8 @@ object CircuitBreakerSlide {
       demoProgramExecutor,
       statistics
     ))
-    animator <- Ref[F].of(AnimatorState2.make()).flatMap(
-      Animator2.make[F](_, statistics, sourceOfMayhem, demoProgramExecutor)
+    animator <- Ref[F].of(AnimatorState.make()).flatMap(
+      Animator.make[F](_, statistics, sourceOfMayhem, demoProgramExecutor)
     )
 
     slide = new Slide[F] {
