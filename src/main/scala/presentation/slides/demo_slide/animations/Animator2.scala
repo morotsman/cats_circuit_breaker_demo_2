@@ -36,12 +36,15 @@ trait Animator2[F[_]] extends StatisticsListener[F] with CircuitBreakerStateList
   def stop(): F[Unit]
 }
 
-case class Event[F[_]]
-(
-  isTransferAnimation: Boolean,
-  animation: F[Unit],
-  stop: Boolean = false
-)
+sealed trait Event
+
+case class AnimationEvent(
+                                 isTransferAnimation: Boolean,
+                                 animationState: AnimationState
+                               ) extends Event
+
+case class PoisonPill() extends Event
+
 
 object Animator2 {
 
@@ -53,39 +56,35 @@ object Animator2 {
     demoProgramExecutor: DemoProgramExecutor[F],
   ): F[Animator2[F]] =
     for {
-      queue <- Queue.unbounded[F, Event[F]]
+      queue <- Queue.unbounded[F, Event]
       animator =
         new Animator2[F] {
 
           override def stop(): F[Unit] =
-            queue.offer(Event[F](
-              isTransferAnimation = true,
-              Monad[F].unit,
-              stop = true
-            ))
+            queue.offer(PoisonPill())
 
           override def statisticsUpdated(statisticsInfo: StatisticsInfo): F[Unit] = for {
             animatorState <- state.get
             demoProgramExecutorState <- demoProgramExecutor.getState()
 
             _ <- if (!animatorState.isStarted && !animatorState.isFailing && demoProgramExecutorState.isStarted) {
-              queue.offer(Event[F](
+              queue.offer(AnimationEvent(
                 isTransferAnimation = false,
-                showStateAnimation(CLOSED_SUCCEED))
-              ) >> state.modify(s => (s.copy(
+                CLOSED_SUCCEED
+              )) >> state.modify(s => (s.copy(
                 isStarted = true
               ), s))
             } else if (!animatorState.isStarted && animatorState.isFailing && demoProgramExecutorState.isStarted) {
-              queue.offer(Event[F](
+              queue.offer(AnimationEvent(
                 isTransferAnimation = false,
-                showStateAnimation(CLOSED_FAILING))
-              ) >> state.modify(s => (s.copy(
+                CLOSED_FAILING
+              )) >> state.modify(s => (s.copy(
                 isStarted = true
               ), s))
             } else if (animatorState.isStarted && !demoProgramExecutorState.isStarted) {
-              queue.offer(Event[F](
-                isTransferAnimation = false, showStateAnimation(NOT_STARTED))
-              ) >> state.modify(s => (s.copy(
+              queue.offer(AnimationEvent(
+                isTransferAnimation = false, NOT_STARTED
+              )) >> state.modify(s => (s.copy(
                 isStarted = false
               ), s))
             } else {
@@ -99,10 +98,10 @@ object Animator2 {
                 animatorState.isFailing &&
                 !mayhemState.isFailing
             ) {
-              queue.offer(Event[F](
+              queue.offer(AnimationEvent(
                 isTransferAnimation = false,
-                showStateAnimation(CLOSED_SUCCEED))
-              ) >> state.modify(s => (s.copy(
+                CLOSED_SUCCEED
+              )) >> state.modify(s => (s.copy(
                 isFailing = false
               ), s))
             } else if (
@@ -111,10 +110,10 @@ object Animator2 {
                 !animatorState.isFailing &&
                 mayhemState.isFailing
             ) {
-              queue.offer(Event[F](
+              queue.offer(AnimationEvent(
                 isTransferAnimation = false,
-                showStateAnimation(CLOSED_FAILING))
-              ) >> state.modify(s => (s.copy(
+                CLOSED_FAILING
+              )) >> state.modify(s => (s.copy(
                 isFailing = true
               ), s))
             } else {
@@ -125,40 +124,39 @@ object Animator2 {
           override def circuitBreakerStateUpdated(circuitBreakerState: CircuitBreakerState): F[Unit] = for {
             animatorState <- state.get
             _ <- if (circuitBreakerState == CircuitBreakerState.CLOSED) {
-              queue.offer(Event[F](
+              queue.offer(AnimationEvent(
                 isTransferAnimation = true,
-                showTransitionAnimation(TRANSFER_HALF_OPEN_TO_CLOSED))
-              ) >>
-                queue.offer(Event[F](
+                TRANSFER_HALF_OPEN_TO_CLOSED
+              )) >>
+                queue.offer(AnimationEvent(
                   isTransferAnimation = false,
-                  showStateAnimation(CLOSED_SUCCEED))
-                )
+                  CLOSED_SUCCEED
+                ))
             } else if (circuitBreakerState == CircuitBreakerState.HALF_OPEN) {
-              queue.offer(Event[F](
+              queue.offer(AnimationEvent(
                 isTransferAnimation = true,
-                showTransitionAnimation(TRANSFER_OPEN_TO_HALF_OPEN))
-              ) >>
-                queue.offer(Event[F](
+                TRANSFER_OPEN_TO_HALF_OPEN
+              )) >>
+                queue.offer(AnimationEvent(
                   isTransferAnimation = false,
-                  showStateAnimation(HALF_OPEN))
-                )
+                  HALF_OPEN
+                ))
             } else if (circuitBreakerState == CircuitBreakerState.OPEN && animatorState.currentCircuitBreakerState == CircuitBreakerState.HALF_OPEN) {
-              queue.offer(Event[F](
+              queue.offer(AnimationEvent(
                 isTransferAnimation = true,
-                showTransitionAnimation(TRANSFER_HALF_OPEN_TO_OPEN))
-              ) >>
-                queue.offer(Event[F](
+                TRANSFER_HALF_OPEN_TO_OPEN
+              )) >>
+                queue.offer(AnimationEvent(
                   isTransferAnimation = false,
-                  showStateAnimation(OPEN)
+                  OPEN
                 ))
             } else {
-              queue.offer(Event[F](
+              queue.offer(AnimationEvent(
                 isTransferAnimation = true,
-                showTransitionAnimation(TRANSFER_CLOSED_TO_OPEN))
-              ) >>
-                queue.offer(Event[F](
+                TRANSFER_CLOSED_TO_OPEN
+                )) >> queue.offer(AnimationEvent(
                   isTransferAnimation = false,
-                  showStateAnimation(OPEN)
+                  OPEN
                 ))
             }
             _ <- state.modify(s => (s.copy(
@@ -170,23 +168,23 @@ object Animator2 {
             def loop(maybeCancelableAnimation: Option[Fiber[F, Throwable, Unit]]): F[Unit] = for {
               event <- queue.take
               _ <- maybeCancelableAnimation.traverse(_.cancel)
-              _ <- if (event.stop) {
-                Monad[F].unit
-              } else {
-                for {
-                  maybeCancelable <- if (event.isTransferAnimation)
-                    event.animation.as(None)
-                  else
-                    event.animation.start.map(Some(_))
-                  _ <- loop(maybeCancelable)
-                } yield ()
+              _ <- event match {
+                case PoisonPill() => Monad[F].unit
+                case AnimationEvent(isTransferAnimation, animationState) =>
+                  for {
+                    maybeCancelable <- if (isTransferAnimation)
+                      showTransitionAnimation(animationState).as(None)
+                    else
+                      showStateAnimation(animationState).start.map(Some(_))
+                    _ <- loop(maybeCancelable)
+                  } yield ()
               }
             } yield ()
 
             for {
-              _ <- queue.offer(Event[F](
+              _ <- queue.offer(AnimationEvent(
                 isTransferAnimation = false,
-                showStateAnimation(NOT_STARTED)
+                NOT_STARTED
               ))
               _ <- loop(None)
             } yield ()
