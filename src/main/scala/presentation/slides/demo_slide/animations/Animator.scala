@@ -161,7 +161,6 @@ object Animator {
               _ <- queue.offer(AnimationEvent(s.currentAnimationState))
               _ <- loop(None)
             } yield ()
-
           }
 
           def showStateAnimation(animationState: AnimationState, frame: Int = 0, delay: Double = 500): F[Unit] = for {
