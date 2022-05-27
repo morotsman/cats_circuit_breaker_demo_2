@@ -11,7 +11,7 @@ trait Presentation[F[_]] {
 }
 
 object Presentation {
-  def make[F[_] : Temporal : Spawn : NConsole]
+  def make[F[_] : Temporal : NConsole]
   (slides: List[Slide[F]]): F[Presentation[F]] = Monad[F].pure(
     new Presentation[F] {
       override def start(): F[Unit] = for {
@@ -20,40 +20,38 @@ object Presentation {
       } yield ()
 
       def executionLoop(): F[Unit] = {
-        def loop(currentWork: Fiber[F, Throwable, Unit], currentSlideIndex: Int = 0): F[Unit] = for {
+        def loop(currentSlideIndex: Int = 0): F[Unit] = for {
           input <- NConsole[F].read()
-          (slide, work) <- input match {
+          slide <- input match {
             case Key(k) if k == SpecialKey.Left =>
               if (currentSlideIndex > 0) {
                 for {
                   _ <- slides(currentSlideIndex).userInput(input)
-                  _ <- currentWork.cancel
                   _ <- NConsole[F].clear()
                   index = currentSlideIndex - 1
-                  newWork <- slides(index).show().start
-                } yield (index, newWork)
+                  _ <- slides(index).show().start
+                } yield index
               } else {
-                Monad[F].pure((currentSlideIndex, currentWork))
+                Monad[F].pure(currentSlideIndex)
               }
             case Key(k) if k == SpecialKey.Right =>
               if (currentSlideIndex < slides.length - 1) {
                 for {
                   _ <- slides(currentSlideIndex).userInput(input)
-                  _ <- currentWork.cancel
                   _ <- NConsole[F].clear()
                   index = currentSlideIndex + 1
-                  newWork <- slides(index).show().start
-                } yield (index, newWork)
+                  _x <- slides(index).show().start
+                } yield index
               } else {
-                Monad[F].pure((currentSlideIndex, currentWork))
+                Monad[F].pure(currentSlideIndex)
               }
             case _ =>
-              slides(currentSlideIndex).userInput(input).as((currentSlideIndex, currentWork))
+              slides(currentSlideIndex).userInput(input).as(currentSlideIndex)
           }
-          _ <- loop(work, slide)
+          _ <- loop(slide)
         } yield ()
 
-        slides.head.show().start >>= (loop(_, 0))
+        slides.head.show().start >> (loop(0))
       }
     }
   )
