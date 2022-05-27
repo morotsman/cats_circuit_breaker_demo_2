@@ -216,6 +216,7 @@ object Animator {
               )
             } yield ()
           }
+
         }
       _ <- statistics.registerStatisticsListener(animator)
       _ <- statistics.registerCircuitBreakerStateListener(animator)
