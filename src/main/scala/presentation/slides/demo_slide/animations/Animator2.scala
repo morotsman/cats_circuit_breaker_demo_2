@@ -57,22 +57,33 @@ object Animator2 {
         new Animator2[F] {
 
           override def stop(): F[Unit] =
-            queue.offer(Event[F](true, Monad[F].unit))
+            queue.offer(Event[F](
+              isTransferAnimation = true,
+              Monad[F].unit)
+            )
 
           override def statisticsUpdated(statisticsInfo: StatisticsInfo): F[Unit] = for {
             animatorState <- state.get
             demoProgramExecutorState <- demoProgramExecutor.getState()
 
             _ <- if (!animatorState.isStarted && !animatorState.isFailing && demoProgramExecutorState.isStarted) {
-              queue.offer(Event[F](false, showStateAnimation(CLOSED_SUCCEED))) >> state.modify(s => (s.copy(
+              queue.offer(Event[F](
+                isTransferAnimation = false,
+                showStateAnimation(CLOSED_SUCCEED))
+              ) >> state.modify(s => (s.copy(
                 isStarted = true
               ), s))
             } else if (!animatorState.isStarted && animatorState.isFailing && demoProgramExecutorState.isStarted) {
-              queue.offer(Event[F](false, showStateAnimation(CLOSED_FAILING))) >> state.modify(s => (s.copy(
+              queue.offer(Event[F](
+                isTransferAnimation = false,
+                showStateAnimation(CLOSED_FAILING))
+              ) >> state.modify(s => (s.copy(
                 isStarted = true
               ), s))
             } else if (animatorState.isStarted && !demoProgramExecutorState.isStarted) {
-              queue.offer(Event[F](false, showStateAnimation(NOT_STARTED))) >> state.modify(s => (s.copy(
+              queue.offer(Event[F](
+                isTransferAnimation = false, showStateAnimation(NOT_STARTED))
+              ) >> state.modify(s => (s.copy(
                 isStarted = false
               ), s))
             } else {
@@ -86,7 +97,10 @@ object Animator2 {
                 animatorState.isFailing &&
                 !mayhemState.isFailing
             ) {
-              queue.offer(Event[F](false, showStateAnimation(CLOSED_SUCCEED))) >> state.modify(s => (s.copy(
+              queue.offer(Event[F](
+                isTransferAnimation = false,
+                showStateAnimation(CLOSED_SUCCEED))
+              ) >> state.modify(s => (s.copy(
                 isFailing = false
               ), s))
             } else if (
@@ -95,7 +109,10 @@ object Animator2 {
                 !animatorState.isFailing &&
                 mayhemState.isFailing
             ) {
-              queue.offer(Event[F](false, showStateAnimation(CLOSED_FAILING))) >> state.modify(s => (s.copy(
+              queue.offer(Event[F](
+                isTransferAnimation = false,
+                showStateAnimation(CLOSED_FAILING))
+              ) >> state.modify(s => (s.copy(
                 isFailing = true
               ), s))
             } else {
@@ -106,17 +123,41 @@ object Animator2 {
           override def circuitBreakerStateUpdated(circuitBreakerState: CircuitBreakerState): F[Unit] = for {
             animatorState <- state.get
             _ <- if (circuitBreakerState == CircuitBreakerState.CLOSED) {
-              queue.offer(Event[F](true, showTransitionAnimation(TRANSFER_HALF_OPEN_TO_CLOSED))) >>
-                queue.offer(Event[F](false, showStateAnimation(CLOSED_SUCCEED)))
+              queue.offer(Event[F](
+                isTransferAnimation = true,
+                showTransitionAnimation(TRANSFER_HALF_OPEN_TO_CLOSED))
+              ) >>
+                queue.offer(Event[F](
+                  isTransferAnimation = false,
+                  showStateAnimation(CLOSED_SUCCEED))
+                )
             } else if (circuitBreakerState == CircuitBreakerState.HALF_OPEN) {
-              queue.offer(Event[F](true, showTransitionAnimation(TRANSFER_OPEN_TO_HALF_OPEN))) >>
-                queue.offer(Event[F](false, showStateAnimation(HALF_OPEN)))
+              queue.offer(Event[F](
+                isTransferAnimation = true,
+                showTransitionAnimation(TRANSFER_OPEN_TO_HALF_OPEN))
+              ) >>
+                queue.offer(Event[F](
+                  isTransferAnimation = false,
+                  showStateAnimation(HALF_OPEN))
+                )
             } else if (circuitBreakerState == CircuitBreakerState.OPEN && animatorState.currentCircuitBreakerState == CircuitBreakerState.HALF_OPEN) {
-              queue.offer(Event[F](true, showTransitionAnimation(TRANSFER_HALF_OPEN_TO_OPEN))) >>
-                queue.offer(Event[F](false, showStateAnimation(OPEN)))
+              queue.offer(Event[F](
+                isTransferAnimation = true,
+                showTransitionAnimation(TRANSFER_HALF_OPEN_TO_OPEN))
+              ) >>
+                queue.offer(Event[F](
+                  isTransferAnimation = false,
+                  showStateAnimation(OPEN))
+                )
             } else {
-              queue.offer(Event[F](true, showTransitionAnimation(TRANSFER_CLOSED_TO_OPEN))) >>
-                queue.offer(Event[F](false, showStateAnimation(OPEN)))
+              queue.offer(Event[F](
+                isTransferAnimation = true,
+                showTransitionAnimation(TRANSFER_CLOSED_TO_OPEN))
+              ) >>
+                queue.offer(Event[F](
+                  isTransferAnimation = false,
+                  showStateAnimation(OPEN))
+                )
             }
             _ <- state.modify(s => (s.copy(
               currentCircuitBreakerState = circuitBreakerState
@@ -135,7 +176,10 @@ object Animator2 {
             } yield ()
 
             for {
-              _ <- queue.offer(Event[F](false, showStateAnimation(NOT_STARTED)))
+              _ <- queue.offer(Event[F](
+                isTransferAnimation = false,
+                showStateAnimation(NOT_STARTED))
+              )
               _ <- loop(None)
             } yield ()
 
