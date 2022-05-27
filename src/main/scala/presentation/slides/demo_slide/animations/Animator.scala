@@ -50,6 +50,8 @@ case class TransitionEvent(
 
 case class PoisonPill() extends Event
 
+case class CleanupCompleted() extends Event
+
 
 object Animator {
 
@@ -62,11 +64,12 @@ object Animator {
   ): F[Animator[F]] =
     for {
       queue <- Queue.unbounded[F, Event]
+      cleanupQueue <- Queue.unbounded[F, Event]
       animator =
         new Animator[F] {
 
           override def stop(): F[Unit] =
-            queue.offer(PoisonPill())
+            queue.offer(PoisonPill()) >> cleanupQueue.take.as(())
 
           override def statisticsUpdated(statisticsInfo: StatisticsInfo): F[Unit] = for {
             animatorState <- state.get
@@ -136,7 +139,7 @@ object Animator {
               event <- queue.take
               _ <- maybeCancelableAnimation.traverse(_.cancel)
               _ <- event match {
-                case PoisonPill() => Monad[F].unit
+                case PoisonPill() => cleanupQueue.offer(CleanupCompleted())
                 case AnimationEvent(animationState) =>
                   for {
                     _ <- state.modify(s => (s.copy(
