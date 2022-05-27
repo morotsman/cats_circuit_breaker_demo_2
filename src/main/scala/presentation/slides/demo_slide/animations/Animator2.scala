@@ -19,14 +19,16 @@ final case class AnimatorState2
 (
   currentCircuitBreakerState: CircuitBreakerState,
   isStarted: Boolean,
-  isFailing: Boolean
+  isFailing: Boolean,
+  currentAnimationState: AnimationState
 )
 
 object AnimatorState2 {
   def make(): AnimatorState2 = AnimatorState2(
     currentCircuitBreakerState = CircuitBreakerState.CLOSED,
     isStarted = false,
-    isFailing = false
+    isFailing = false,
+    currentAnimationState = AnimationState.NOT_STARTED
   )
 }
 
@@ -137,6 +139,9 @@ object Animator2 {
                 case PoisonPill() => Monad[F].unit
                 case AnimationEvent(animationState) =>
                   for {
+                    _ <- state.modify(s => (s.copy(
+                      currentAnimationState = animationState
+                    ), s))
                     cancelable <- showStateAnimation(animationState).start
                     _ <- loop(Option(cancelable))
                   } yield ()
@@ -149,7 +154,8 @@ object Animator2 {
             } yield ()
 
             for {
-              _ <- queue.offer(AnimationEvent(NOT_STARTED))
+              s <- state.get
+              _ <- queue.offer(AnimationEvent(s.currentAnimationState))
               _ <- loop(None)
             } yield ()
 
