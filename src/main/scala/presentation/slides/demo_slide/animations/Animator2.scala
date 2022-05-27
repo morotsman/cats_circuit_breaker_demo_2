@@ -32,6 +32,7 @@ object AnimatorState2 {
 
 trait Animator2[F[_]] extends StatisticsListener[F] with CircuitBreakerStateListener[F] {
   def animate(): F[Unit]
+
   def stop(): F[Unit]
 }
 
@@ -56,11 +57,11 @@ object Animator2 {
             animatorState <- state.get
             demoProgramExecutorState <- demoProgramExecutor.getState()
 
-            _ <- if (!animatorState.isFailing && !animatorState.isStarted && demoProgramExecutorState.isStarted) {
+            _ <- if (!animatorState.isStarted && !animatorState.isFailing && demoProgramExecutorState.isStarted) {
               queue.offer((false, showStateAnimation(CLOSED_SUCCEED))) >> state.modify(s => (s.copy(
                 isStarted = true
               ), s))
-            } else if (animatorState.isFailing && !animatorState.isStarted && demoProgramExecutorState.isStarted) {
+            } else if (!animatorState.isStarted && animatorState.isFailing && demoProgramExecutorState.isStarted) {
               queue.offer((false, showStateAnimation(CLOSED_FAILING))) >> state.modify(s => (s.copy(
                 isStarted = true
               ), s))
@@ -77,7 +78,8 @@ object Animator2 {
               animatorState.currentCircuitBreakerState == CircuitBreakerState.CLOSED &&
                 animatorState.isStarted &&
                 animatorState.isFailing &&
-                !mayhemState.isFailing) {
+                !mayhemState.isFailing
+            ) {
               queue.offer((false, showStateAnimation(CLOSED_SUCCEED))) >> state.modify(s => (s.copy(
                 isFailing = false
               ), s))
@@ -85,7 +87,8 @@ object Animator2 {
               animatorState.currentCircuitBreakerState == CircuitBreakerState.CLOSED &&
                 animatorState.isStarted &&
                 !animatorState.isFailing &&
-                mayhemState.isFailing) {
+                mayhemState.isFailing
+            ) {
               queue.offer((false, showStateAnimation(CLOSED_FAILING))) >> state.modify(s => (s.copy(
                 isFailing = true
               ), s))
