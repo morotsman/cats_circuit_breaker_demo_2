@@ -1,13 +1,13 @@
 package com.github.morotsman
 package presentation.slides.demo_slide
 
-import presentation.tools.{Input, NConsole, Slide}
+import presentation.tools.{Input, Key, NConsole, Slide, SpecialKey}
 
 import cats.implicits._
 import cats.effect.implicits._
 import cats.effect.{Ref, Temporal}
 import presentation.demo.{MayhemState, SourceOfMayhem, Statistics, StatisticsState}
-import presentation.slides.demo_slide.animations.{Animator, Animator2, AnimatorState, AnimatorState2}
+import presentation.slides.demo_slide.animations.{Animator2, AnimatorState2}
 
 object CircuitBreakerSlide {
   def make[F[_] : Temporal : NConsole](): F[Slide[F]] = for {
@@ -34,8 +34,12 @@ object CircuitBreakerSlide {
           animator.animate()
         }
 
-      override def userInput(input: Input): F[Unit] =
-        controlPanel.userInput(input)
+      override def userInput(input: Input): F[Unit] = {
+        input match {
+          case Key(k) if k == SpecialKey.Right || k == SpecialKey.Left => animator.stop()
+          case _ => controlPanel.userInput(input)
+        }
+      }
     }
   } yield slide
 

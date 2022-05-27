@@ -34,8 +34,8 @@ object Main extends IOApp.Simple {
         ThePattern1[IO],
         ThePattern2[IO],
         ThePattern3[IO],
-        ThePattern4[IO],
-        ThePattern5[IO],*/
+        ThePattern4[IO],*/
+        ThePattern5[IO],
         circuitBreakerSlide,
         /*StateOfTheSystemAfterCircuitBreaker[IO],
         InTheCode[IO],

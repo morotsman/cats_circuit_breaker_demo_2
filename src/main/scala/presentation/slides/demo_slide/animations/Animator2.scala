@@ -32,6 +32,7 @@ object AnimatorState2 {
 
 trait Animator2[F[_]] extends StatisticsListener[F] with CircuitBreakerStateListener[F] {
   def animate(): F[Unit]
+  def stop(): F[Unit]
 }
 
 object Animator2 {
@@ -47,6 +48,9 @@ object Animator2 {
       queue <- Queue.unbounded[F, (Boolean, F[Unit])]
       animator =
         new Animator2[F] {
+
+          override def stop(): F[Unit] =
+            queue.offer((true, Monad[F].unit))
 
           override def statisticsUpdated(statisticsInfo: StatisticsInfo): F[Unit] = for {
             animatorState <- state.get
@@ -67,6 +71,7 @@ object Animator2 {
             } else {
               Monad[F].unit
             }
+
             mayhemState <- sourceOfMayhem.mayhemState()
             _ <- if (
               animatorState.currentCircuitBreakerState == CircuitBreakerState.CLOSED &&
@@ -116,7 +121,7 @@ object Animator2 {
               maybeCancelable <- if (transfer)
                 animation.as(None)
               else
-                animation.start.map(Some(_))
+                animation.start.map(Some(_)) // Todo, this causes the program to not be able to cancel
               _ <- loop(maybeCancelable)
             } yield ()
 

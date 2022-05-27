@@ -26,6 +26,7 @@ object Presentation {
             case Key(k) if k == SpecialKey.Left =>
               if (currentSlideIndex > 0) {
                 for {
+                  _ <- slides(currentSlideIndex).userInput(input)
                   _ <- currentWork.cancel
                   _ <- NConsole[F].clear()
                   index = currentSlideIndex - 1
@@ -37,6 +38,7 @@ object Presentation {
             case Key(k) if k == SpecialKey.Right =>
               if (currentSlideIndex < slides.length - 1) {
                 for {
+                  _ <- slides(currentSlideIndex).userInput(input)
                   _ <- currentWork.cancel
                   _ <- NConsole[F].clear()
                   index = currentSlideIndex + 1
