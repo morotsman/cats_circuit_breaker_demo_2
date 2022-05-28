@@ -75,17 +75,21 @@ object Animator {
             animatorState <- state.get
             demoProgramExecutorState <- demoProgramExecutor.getState()
 
-            _ <- if (!animatorState.isStarted && demoProgramExecutorState.isStarted && !animatorState.isFailing ) {
+            _ <- if (!animatorState.isStarted && demoProgramExecutorState.isStarted && animatorState.currentAnimationState != NOT_STARTED ) {
+              queue.offer(AnimationEvent(animatorState.currentAnimationState)) >> state.modify(s => (s.copy(
+                isStarted = demoProgramExecutorState.isStarted
+              ), s))
+            } else if (!animatorState.isStarted && demoProgramExecutorState.isStarted && !animatorState.isFailing ) {
               queue.offer(AnimationEvent(CLOSED_SUCCEED)) >> state.modify(s => (s.copy(
-                isStarted = true
+                isStarted = demoProgramExecutorState.isStarted
               ), s))
             } else if (!animatorState.isStarted && demoProgramExecutorState.isStarted && animatorState.isFailing) {
               queue.offer(AnimationEvent(CLOSED_FAILING)) >> state.modify(s => (s.copy(
-                isStarted = true
+                isStarted = demoProgramExecutorState.isStarted
               ), s))
             } else if (animatorState.isStarted && !demoProgramExecutorState.isStarted) {
               queue.offer(AnimationEvent(NOT_STARTED)) >> state.modify(s => (s.copy(
-                isStarted = false
+                isStarted = demoProgramExecutorState.isStarted
               ), s))
             } else {
               Monad[F].unit
@@ -141,9 +145,9 @@ object Animator {
                 case PoisonPill() => cleanupQueue.offer(CleanupCompleted())
                 case AnimationEvent(animationState) =>
                   for {
-                    _ <- state.modify(s => (s.copy(
+                    _ <- if (animationState != NOT_STARTED) state.modify(s => (s.copy(
                       currentAnimationState = animationState
-                    ), s))
+                    ), s)) else Monad[F].unit
                     cancelable <- showStateAnimation(animationState).start
                     _ <- loop(Option(cancelable))
                   } yield ()
