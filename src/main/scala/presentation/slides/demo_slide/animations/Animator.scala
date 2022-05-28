@@ -87,10 +87,6 @@ object Animator {
               queue.offer(AnimationEvent(CLOSED_FAILING)) >> state.modify(s => (s.copy(
                 isStarted = demoProgramExecutorState.isStarted
               ), s))
-            } else if (animatorState.isStarted && !demoProgramExecutorState.isStarted) {
-              state.modify(s => (s.copy(
-                isStarted = demoProgramExecutorState.isStarted
-              ), s))
             } else {
               Monad[F].unit
             }
