@@ -75,11 +75,11 @@ object Animator {
             animatorState <- state.get
             demoProgramExecutorState <- demoProgramExecutor.getState()
 
-            _ <- if (!animatorState.isStarted && !animatorState.isFailing && demoProgramExecutorState.isStarted) {
+            _ <- if (!animatorState.isStarted && demoProgramExecutorState.isStarted && !animatorState.isFailing ) {
               queue.offer(AnimationEvent(CLOSED_SUCCEED)) >> state.modify(s => (s.copy(
                 isStarted = true
               ), s))
-            } else if (!animatorState.isStarted && animatorState.isFailing && demoProgramExecutorState.isStarted) {
+            } else if (!animatorState.isStarted && demoProgramExecutorState.isStarted && animatorState.isFailing) {
               queue.offer(AnimationEvent(CLOSED_FAILING)) >> state.modify(s => (s.copy(
                 isStarted = true
               ), s))
@@ -98,21 +98,20 @@ object Animator {
                 animatorState.isFailing &&
                 !mayhemState.isFailing
             ) {
-              queue.offer(AnimationEvent(CLOSED_SUCCEED)) >> state.modify(s => (s.copy(
-                isFailing = false
-              ), s))
+              queue.offer(AnimationEvent(CLOSED_SUCCEED))
             } else if (
               animatorState.currentCircuitBreakerState == CircuitBreakerState.CLOSED &&
                 animatorState.isStarted &&
                 !animatorState.isFailing &&
                 mayhemState.isFailing
             ) {
-              queue.offer(AnimationEvent(CLOSED_FAILING)) >> state.modify(s => (s.copy(
-                isFailing = true
-              ), s))
+              queue.offer(AnimationEvent(CLOSED_FAILING))
             } else {
               Monad[F].unit
             }
+            _ <- state.modify(s => (s.copy(
+              isFailing = mayhemState.isFailing
+            ), s))
           } yield ()
 
           override def circuitBreakerStateUpdated(circuitBreakerState: CircuitBreakerState): F[Unit] = for {
