@@ -88,7 +88,7 @@ object Animator {
                 isStarted = demoProgramExecutorState.isStarted
               ), s))
             } else if (animatorState.isStarted && !demoProgramExecutorState.isStarted) {
-              queue.offer(AnimationEvent(NOT_STARTED)) >> state.modify(s => (s.copy(
+              state.modify(s => (s.copy(
                 isStarted = demoProgramExecutorState.isStarted
               ), s))
             } else {
@@ -145,9 +145,9 @@ object Animator {
                 case PoisonPill() => cleanupQueue.offer(CleanupCompleted())
                 case AnimationEvent(animationState) =>
                   for {
-                    _ <- if (animationState != NOT_STARTED) state.modify(s => (s.copy(
+                    _ <- state.modify(s => (s.copy(
                       currentAnimationState = animationState
-                    ), s)) else Monad[F].unit
+                    ), s))
                     cancelable <- showStateAnimation(animationState).start
                     _ <- loop(Option(cancelable))
                   } yield ()
