@@ -5,11 +5,17 @@ import presentation.tools.{Input, NConsole, Slide}
 
 import cats.effect.Sync
 
-case class InTheCode[F[_] : Sync : NConsole]() extends Slide[F] {
+case class DemoTime[F[_] : Sync : NConsole]() extends Slide[F] {
   val text =
     """
       |
-      |   Show example how to use a circuit breaker in the code!
+      |
+      |  ___                  _   _           _
+      | |   \ ___ _ __  ___  | |_(_)_ __  ___| |
+      | | |) / -_) '  \/ _ \ |  _| | '  \/ -_)_|
+      | |___/\___|_|_|_\___/  \__|_|_|_|_\___(_)
+      |
+      |
       |
       |
       |""".stripMargin
