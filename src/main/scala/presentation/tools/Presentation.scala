@@ -5,6 +5,9 @@ import cats._
 import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
+import com.github.morotsman.presentation.slides.Bye
+
+import scala.concurrent.duration.DurationInt
 
 trait Presentation[F[_]] {
   def start(): F[Unit]
@@ -30,9 +33,9 @@ object Presentation {
                   _ <- NConsole[F].clear()
                   index = currentSlideIndex - 1
                   _ <- slides(index).show().start
-                } yield index
+                } yield Option(index)
               } else {
-                Monad[F].pure(currentSlideIndex)
+                Monad[F].pure(Option(currentSlideIndex))
               }
             case Key(k) if k == SpecialKey.Right =>
               if (currentSlideIndex < slides.length - 1) {
@@ -41,14 +44,22 @@ object Presentation {
                   _ <- NConsole[F].clear()
                   index = currentSlideIndex + 1
                   _x <- slides(index).show().start
-                } yield index
+                } yield Option(index)
               } else {
-                Monad[F].pure(currentSlideIndex)
+                Monad[F].pure(Option(currentSlideIndex))
               }
+            case Key(k) if k == SpecialKey.Esc =>
+              Monad[F].pure(None)
             case _ =>
-              slides(currentSlideIndex).userInput(input).as(currentSlideIndex)
+              slides(currentSlideIndex).userInput(input).as(Option(currentSlideIndex))
           }
-          _ <- loop(slide)
+          _ <- slide.fold(
+            NConsole[F].clear() >>
+              Bye[F].show() >>
+              Temporal[F].sleep(2.seconds) >>
+              NConsole[F].clear() >>
+              Monad[F].unit
+          )(loop)
         } yield ()
 
         slides.head.show().start >> (loop(0))
