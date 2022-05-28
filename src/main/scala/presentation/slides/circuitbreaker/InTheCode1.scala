@@ -32,6 +32,9 @@ case class InTheCode1[F[_] : Sync : NConsole]() extends Slide[F] {
       |      _ <- circuitBreaker.protect {
       |        for {
       |          _ <- sourceOfMayhem.mightFail()
+      |          // you might want to check what kind of error that was thrown,
+      |          // in case that not all errors should cause the circuit breaker to trip
+      |          // timeout (or other transient errors) vs business errors
       |        } yield ()
       |      }.handleError(_ =>
       |        // Could return fallback value, or even call secondary service
