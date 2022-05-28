@@ -19,7 +19,7 @@ case class InContrast2[F[_] : Sync : NConsole]() extends Slide[F] {
          |
          |  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___                           ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___                           ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
          | |___|___|___|___|___|___|___|___|___|___|___|___|                         |___|___|___|___|___|___|___|___|___|___|___|___|                         |___|___|___|___|___|___|___|___|___|___|___|___|
-         | | |                                           | |                         | |       Do you think that is rough?         | |                         | |    Whining: Oh, I have to much to do!     | |
+         | | |                                           | |                         | |       Do you think that is rough?         | |                         | |        Whining: Oh, so much to do!        | |
          | | |                                           | |                         | |  I'll give you something to cry about!    | |                         | |    For the love of god, please help me.   | |
          | | |                                           | |  Increase in latancy!   | | Hmm, Service A is effected? Never mind, I | |  Increase in latancy!   | |                                           | |
          | |_|     ___              _            _       |_|    40 ms -> > 6 s  __   |_|     ___ hate that bastard anyways__       |_|      30 ms -> ? s  __   |_|           ___     _ _ _                   |_|
