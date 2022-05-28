@@ -56,7 +56,7 @@ object Presentation {
           _ <- slide.fold(
             NConsole[F].clear() >>
               Bye[F].show() >>
-              Temporal[F].sleep(2.seconds) >>
+              Temporal[F].sleep(500.milli) >>
               NConsole[F].clear() >>
               Monad[F].unit
           )(loop)

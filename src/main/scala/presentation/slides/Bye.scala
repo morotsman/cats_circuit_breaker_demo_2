@@ -3,10 +3,14 @@ package presentation.slides
 
 import presentation.tools.{Input, NConsole, Slide}
 
+import cats.implicits._
 import cats.Monad
-import cats.effect.Sync
+import cats.effect.kernel.Temporal
 
-case class Bye[F[_] : Monad : NConsole]() extends Slide[F] {
+import scala.concurrent.duration.DurationInt
+import scala.util.Random
+
+case class Bye[F[_] : NConsole : Temporal]() extends Slide[F] {
   override def show(): F[Unit] = {
     val text =
       """
@@ -16,20 +20,47 @@ case class Bye[F[_] : Monad : NConsole]() extends Slide[F] {
         |
         |
         |
+        |                                               /$$$$$$   /$$$$$$   /$$$$$$  /$$$$$$$        /$$$$$$$  /$$     /$$ /$$$$$$$$ /$$
+        |                                              /$$__  $$ /$$__  $$ /$$__  $$| $$__  $$      | $$__  $$|  $$   /$$/| $$_____/| $$
+        |                                             | $$  \__/| $$  \ $$| $$  \ $$| $$  \ $$      | $$  \ $$ \  $$ /$$/ | $$      | $$
+        |                                             | $$ /$$$$| $$  | $$| $$  | $$| $$  | $$      | $$$$$$$   \  $$$$/  | $$$$$   | $$
+        |                                             | $$|_  $$| $$  | $$| $$  | $$| $$  | $$      | $$__  $$   \  $$/   | $$__/   |__/
+        |                                             | $$  \ $$| $$  | $$| $$  | $$| $$  | $$      | $$  \ $$    | $$    | $$
+        |                                             |  $$$$$$/|  $$$$$$/|  $$$$$$/| $$$$$$$/      | $$$$$$$/    | $$    | $$$$$$$$ /$$
+        |                                              \______/  \______/  \______/ |_______/       |_______/     |__/    |________/|__/
         |
         |
         |
-        |  ___          _
-        | | _ )_  _ ___| |
-        | | _ \ || / -_)_|
-        | |___/\_, \___(_)
-        |      |__/
         |
         |
         |
-        |"""
-    NConsole[F].writeString(text.stripMargin)
+        |
+        |""".stripMargin
+
+    def distort(distortionRate: Double, text: String): F[Unit] = {
+      if (distortionRate > 4) {
+        Monad[F].unit
+      } else {
+        val distortedText = distortTheText(distortionRate, text)
+        NConsole[F].clear() >>
+          NConsole[F].writeString(distortedText) >>
+          Temporal[F].sleep(100.milli) >>
+          distort(distortionRate * 2, distortedText)
+      }
+    }
+
+    NConsole[F].writeString(text) >> Temporal[F].sleep(2.seconds) >> distort(0.01, text)
   }
+
+  private def distortTheText(distortionRate: Double, text: String): String = {
+    val number = (text.size * distortionRate).toInt
+    val numbers = Array.fill(number)(Random.nextInt(text.length))
+    text.zipWithIndex.map { case (c, index) => if (numbers.contains(index) && c != '\n') {
+      ' '
+    } else c
+    }.mkString("")
+  }
+
 
   override def userInput(input: Input): F[Unit] = Monad[F].unit
 
