@@ -38,18 +38,18 @@ case class Bye[F[_] : NConsole : Temporal]() extends Slide[F] {
         |""".stripMargin
 
     def distort(distortionRate: Double, text: String): F[Unit] = {
-      if (distortionRate > 4) {
-        Monad[F].unit
+      if (distortionRate > 2) {
+        NConsole[F].clear()
       } else {
         val distortedText = distortTheText(distortionRate, text)
         NConsole[F].clear() >>
           NConsole[F].writeString(distortedText) >>
-          Temporal[F].sleep(100.milli) >>
+          Temporal[F].sleep(200.milli) >>
           distort(distortionRate * 2, distortedText)
       }
     }
 
-    NConsole[F].writeString(text) >> Temporal[F].sleep(2.seconds) >> distort(0.01, text)
+    NConsole[F].writeString(text) >> Temporal[F].sleep(4.seconds) >> distort(0.01, text)
   }
 
   private def distortTheText(distortionRate: Double, text: String): String = {
