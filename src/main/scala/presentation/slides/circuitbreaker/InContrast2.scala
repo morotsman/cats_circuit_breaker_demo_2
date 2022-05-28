@@ -20,7 +20,7 @@ case class InContrast2[F[_] : Sync : NConsole]() extends Slide[F] {
          |  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___                           ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___                           ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
          | |___|___|___|___|___|___|___|___|___|___|___|___|                         |___|___|___|___|___|___|___|___|___|___|___|___|                         |___|___|___|___|___|___|___|___|___|___|___|___|
          | | |                                           | |                         | |       Do you think that is rough?         | |                         | |        Whining: Oh, so much to do!        | |
-         | | |          As service B said                | |                         | |  I'll give you something to cry about!    | |                         | |    For the love of god, please help me.   | |
+         | | |          Like service B said              | |                         | |  I'll give you something to cry about!    | |                         | |    For the love of god, please help me.   | |
          | | |                                           | |   Sending even more     | | Hmm, Service A is effected? Never mind, I | |    Sending even more    | |                                           | |
          | |_|     ___              _            _       |_|        reuests     __   |_|     ___ hate that bastard anyways__       |_|         requests   __   |_|           ___     _ _ _                   |_|
          | | |    / __| ___ _ ___ _(_)__ ___    /_\      | |  ___ ___ ___ ___ __\ \  | |    / __| ___ _ ___ _(_)__ ___  | _ )      | |  ___ ___ ___ ___ __\ \  | |          | __|_ _(_) (_)_ _  __ _         | |
