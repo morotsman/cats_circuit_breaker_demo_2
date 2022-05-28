@@ -19,17 +19,17 @@ case class StateOfTheSystemAfterCircuitBreaker[F[_] : Sync : NConsole]() extends
       |
       |  ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___                           ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___                           ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___
       | |___|___|___|___|___|___|___|___|___|___|___|___|                         |___|___|___|___|___|___|___|___|___|___|___|___|                         |___|___|___|___|___|___|___|___|___|___|___|___|
-      | | |       Service A couldn't get it's         | | No Increase in latancy  | |        Is not wasting resources           | |                         | |                                           | |
-      | | |       request handled, but is not         | |  We can't handle your   | |   Remember also that the service might    | |                         | |                                           | |
-      | | |       wasting resources. Fallback?        | |  request at the moment. | |   have other responsibilities.            | |    Almost no calls!     | |                                           | |
-      | |_|     ___              _            _       |_|        Sorry!           |_|     ___              _          ___       |_|  I see you are having   |_|           ___     _ _ _                   |_|
-      | | |    / __| ___ _ ___ _(_)__ ___    /_\      | |  ___ ___ ___ ___ __\ \  | |    / __| ___ _ ___ _(_)__ ___  | _ )      | |  a rough time, let me   | |          | __|_ _(_) (_)_ _  __ _         | |
+      | | |       Service A couldn't get it's         | | No Increase in latancy  | |        Is not wasting resources           | |                         | |        Whining: Oh, so much to do!        | |
+      | | |       request handled, but is not         | |  We can't handle your   | |   Remember also that the service might    | |                         | |      For the love of god, please help me. | |
+      | | |       wasting resources. Fallback?        | |  request at the moment. | |       have other responsibilities.        | | Almost no calls because,| |                                           | |
+      | |_|     ___              _            _       |_|     Really sorry :-(_   |_|     ___              _          ___       |_|  I see you are having   |_|           ___     _ _ _                   |_|
+      | | |    / __| ___ _ ___ _(_)__ ___    /_\      | |  ___ ___ ___ ___ __\ \  | |    / __| ___ _ ___ _(_)__ ___  | _ )      | |  a rough time. Let me   | |          | __|_ _(_) (_)_ _  __ _         | |
       | | |    \__ \/ -_) '_\ V / / _/ -_)  / _ \     | | |___|___|___|___|___> > | |    \__ \/ -_) '_\ V / / _/ -_) | _ \      | |  help you by not adding | |          | _/ _` | | | | ' \/ _` |        | |
-      | | |    |___/\___|_|  \_/|_\__\___| /_/ \_\    | |                    /_/  | |    |___/\___|_|  \_/|_\__\___| |___/      | |  to the burden.         | |          |_|\__,_|_|_|_|_||_\__, |        | |
-      | |_|                                           |_|                         |_|                                           |_|                         |_|                             |___/         |_|
-      | | |                                           | |                         | |                                           | |                         | |                                           | |
-      | | |                                           | |                         | |                                           | |                         | |                                           | |
-      | | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |                         | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |                         | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |
+      | | |    |___/\___|_|  \_/|_\__\___| /_/ \_\    | |                    /_/  | |    |___/\___|_|  \_/|_\__\___| |___/      | |     to the burden.      | |          |_|\__,_|_|_|_|_||_\__, |        | |
+      | |_|                                           |_|  Can I offer you this   |_|       Could return a fallback value       |_|                         |_|                             |___/         |_|
+      | | |                                           | | fallback value instead? | |    while the circuit breaker is open?     | |   Hope you get well     | |                                           | |
+      | | |                                           | |                         | |                                           | |   soon! I'll check in   | |                                           | |
+      | | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |                         | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |      on you later!      | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |
       | |_|___|___|___|___|___|___|___|___|___|___|___|_|                         |_|___|___|___|___|___|___|___|___|___|___|___|_|                         |_|___|___|___|___|___|___|___|___|___|___|___|_|
       |
       |

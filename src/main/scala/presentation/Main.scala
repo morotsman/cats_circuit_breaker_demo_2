@@ -39,6 +39,7 @@ object Main extends IOApp.Simple {
         InContrast1[IO],
         InContrast2[IO],
         DemoTime[IO],
+        ThePattern4[IO],
         circuitBreakerSlide,
         InTheCode1[IO],
         InTheCode2[IO],
