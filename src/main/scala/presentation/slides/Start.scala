@@ -28,7 +28,7 @@ case class Start[F[_] : Sync : NConsole]() extends Slide[F] {
         |
         |
         |"""
-    NConsole[F].writeString(text.stripMargin)
+    NConsole[F].writeStringCenterAligned(text.stripMargin)
   }
 
   override def userInput(input: Input): F[Unit] = Sync[F].unit

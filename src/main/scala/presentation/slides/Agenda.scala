@@ -6,7 +6,7 @@ import com.github.morotsman.presentation.tools.{Input, NConsole, Slide}
 
 case class Agenda[F[_] : Sync : NConsole]() extends Slide[F] {
   override def show(): F[Unit] =
-    NConsole[F].writeString(
+    NConsole[F].writeStringCenterAligned(
       """
         |                               _
         |     /\                       | |

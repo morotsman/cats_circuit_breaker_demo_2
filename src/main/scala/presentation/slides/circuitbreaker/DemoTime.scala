@@ -20,7 +20,7 @@ case class DemoTime[F[_] : Sync : NConsole]() extends Slide[F] {
       |
       |""".stripMargin
 
-  override def show(): F[Unit] = NConsole[F].writeString(text)
+  override def show(): F[Unit] = NConsole[F].writeStringCenterAligned(text)
 
   override def userInput(input: Input): F[Unit] = Sync[F].unit
 }

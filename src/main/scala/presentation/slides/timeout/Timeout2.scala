@@ -51,7 +51,7 @@ case class Timeout2[F[_] : Sync : NConsole]() extends Slide[F] {
          | |_|___|___|___|___|___|___|___|___|___|___|___|_|                         |_|___|___|___|___|___|___|___|___|___|___|___|_|
          |""".stripMargin
 
-  override def show(): F[Unit] = NConsole[F].writeString(slow1)
+  override def show(): F[Unit] = NConsole[F].writeStringCenterAligned(slow1)
 
   override def userInput(input: Input): F[Unit] = Sync[F].unit
 }

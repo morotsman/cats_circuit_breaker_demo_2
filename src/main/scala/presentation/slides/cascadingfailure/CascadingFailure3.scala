@@ -52,7 +52,7 @@ case class CascadingFailure3[F[_] : Sync : NConsole]() extends Slide[F] {
       | |_|___|___|___|___|___|___|___|___|___|___|___|_|                         |_|___|___|___|___|___|___|___|___|___|___|___|_|
       |""".stripMargin
 
-  override def show(): F[Unit] = NConsole[F].writeString(slow3)
+  override def show(): F[Unit] = NConsole[F].writeStringCenterAligned(slow3)
 
   override def userInput(input: Input): F[Unit] = Sync[F].unit
 }

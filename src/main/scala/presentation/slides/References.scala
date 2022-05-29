@@ -7,7 +7,7 @@ import cats.effect.Sync
 
 case class References[F[_] : Sync : NConsole]() extends Slide[F] {
   override def show(): F[Unit] =
-    NConsole[F].writeString(
+    NConsole[F].writeStringCenterAligned(
       """
         |
         |

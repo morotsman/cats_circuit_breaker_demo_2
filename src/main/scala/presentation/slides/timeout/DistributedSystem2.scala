@@ -56,7 +56,7 @@ case class DistributedSystem2[F[_] : Sync : NConsole]() extends Slide[F] {
 
 
 
-  override def show(): F[Unit] = NConsole[F].writeString(distributedSystem)
+  override def show(): F[Unit] = NConsole[F].writeStringCenterAligned(distributedSystem)
 
   override def userInput(input: Input): F[Unit] = Sync[F].unit
 }
