@@ -61,12 +61,11 @@ object NConsole {
         override def writeString(s: String, centerText: Boolean = true): F[Unit] = Sync[F].blocking {
           val text = if (centerText) {
             val width = terminal.getWidth
-            val height = terminal.getHeight
             val splitByNewLine = s.split("\n")
             val padFactor = splitByNewLine.map(line => (width - line.length) / 2).min
+            val padding = Array.fill(padFactor)(" ").mkString("")
             splitByNewLine.map { line =>
               if (padFactor >= 0) {
-                val padding = Array.fill(padFactor)(" ").mkString("")
                 padding + line
               } else ???
             }.mkString("\n")
