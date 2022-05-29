@@ -66,7 +66,7 @@ object NConsole {
             val padFactor = splitByNewLine.map(line => (width - line.length) / 2).min
             splitByNewLine.map { line =>
               if (padFactor >= 0) {
-                val padding = Array.fill(padFactor)("0").mkString("")
+                val padding = Array.fill(padFactor)(" ").mkString("")
                 padding + line
               } else ???
             }.mkString("\n")
