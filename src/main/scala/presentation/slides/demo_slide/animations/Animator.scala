@@ -175,7 +175,7 @@ object Animator {
                   mayhemState,
                   demoProgramExecutorState.circuitBreakerConfiguration,
                   demoProgramExecutorState.isStarted
-                ))
+                ), centerText = false)
             _ <- Temporal[F].sleep(delay.toInt.milli)
             _ <- showStateAnimation(
               animationState,
@@ -205,7 +205,7 @@ object Animator {
                   mayhemState,
                   demoProgramExecutorState.circuitBreakerConfiguration,
                   demoProgramExecutorState.isStarted
-                ))
+                ), centerText = false)
               _ <- Temporal[F].sleep(delay.toInt.milli)
               _ <- showTransitionAnimation(
                 animationState,

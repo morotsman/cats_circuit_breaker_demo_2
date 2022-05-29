@@ -4,7 +4,7 @@ package presentation.tools
 import presentation.tools.SpecialKey.SpecialKey
 
 import cats.effect.{IO, Sync}
-import org.jline.terminal.TerminalBuilder
+import org.jline.terminal.{Terminal, TerminalBuilder}
 import org.jline.utils.InfoCmp.Capability
 
 sealed trait Input
@@ -22,7 +22,7 @@ object SpecialKey extends Enumeration {
 trait NConsole[F[_]] {
   def read(): F[Input]
 
-  def writeString(s: String): F[Unit]
+  def writeString(s: String, centerText: Boolean = true): F[Unit]
 
   def clear(): F[Unit]
 }
@@ -58,8 +58,23 @@ object NConsole {
           }
         }
 
-        override def writeString(s: String): F[Unit] = Sync[F].blocking {
-          println(s)
+        override def writeString(s: String, centerText: Boolean = true): F[Unit] = Sync[F].blocking {
+          val text = if (centerText) {
+            val width = terminal.getWidth
+            val height = terminal.getHeight
+            val splitByNewLine = s.split("\n")
+            val padFactor = splitByNewLine.map(line => (width - line.length) / 2).min
+            splitByNewLine.map { line =>
+              if (padFactor >= 0) {
+                val padding = Array.fill(padFactor)("0").mkString("")
+                padding + line
+              } else ???
+            }.mkString("\n")
+          } else {
+            s
+          }
+
+          println(text)
         }
 
         override def clear(): F[Unit] = Sync[F].blocking {
@@ -76,8 +91,8 @@ object NConsoleInstances {
 
     override def read(): IO[Input] = console.flatMap(_.read())
 
-    override def writeString(s: String): IO[Unit] =
-      console.flatMap(_.writeString(s))
+    override def writeString(s: String, centerText: Boolean = true): IO[Unit] =
+      console.flatMap(_.writeString(s, centerText))
 
     override def clear(): IO[Unit] =
       console.flatMap(_.clear())
