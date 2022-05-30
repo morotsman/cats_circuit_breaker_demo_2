@@ -162,52 +162,51 @@ object Animator {
             } yield ()
           }
 
-          def showStateAnimation(
-                                  animationState: AnimationState,
-                                  frame: Int = 0,
-                                  delay: Double = 500
-                                ): F[Unit] =
-            showAnimation(animationState, frame, delay, delayAccelerator = 1.1, forever = true)
+          def showStateAnimation(animationState: AnimationState): F[Unit] =
+            showAnimation(animationState, delay = 500, delayAccelerator = 1.1, forever = true)
 
-          def showTransitionAnimation
-          (
-            animationState: AnimationState,
-            frame: Int = 0,
-            delay: Double = 160
-          ): F[Unit] =
-            showAnimation(animationState, frame, delay, delayAccelerator = 1.2, forever = false)
+          def showTransitionAnimation(animationState: AnimationState): F[Unit] =
+            showAnimation(animationState, delay = 160, delayAccelerator = 1.2, forever = false)
 
           def showAnimation
           (
             animationState: AnimationState,
-            frame: Int,
             delay: Double,
             delayAccelerator: Double,
             forever: Boolean
-          ): F[Unit] = if (!forever && frame >= AnimationMapper(animationState).size) {
-            Monad[F].unit
-          } else {
-            for {
-              demoProgramExecutorState <- demoProgramExecutor.getState()
-              statisticsInfo <- statistics.getStatisticsInfo()
-              mayhemState <- sourceOfMayhem.mayhemState()
-              animation = AnimationMapper(animationState)
-              _ <- NConsole[F].clear()
-              _ <- NConsole[F].writeString(
-                animation(frame)(
-                  statisticsInfo,
-                  statisticsInfo.currentInput,
-                  mayhemState,
-                  demoProgramExecutorState.circuitBreakerConfiguration,
-                  demoProgramExecutorState.isStarted
-                ))
-              _ <- Temporal[F].sleep(delay.toInt.milli)
-              _ <- showTransitionAnimation(
-                animationState,
-                frame + 1,
-                delay = delay / delayAccelerator
-              )
-            } yield ()
+          ): F[Unit] = {
+
+            def loop(frame: Int = 0, frameDelay: Double): F[Unit] = {
+              for {
+                demoProgramExecutorState <- demoProgramExecutor.getState()
+                statisticsInfo <- statistics.getStatisticsInfo()
+                mayhemState <- sourceOfMayhem.mayhemState()
+                animation = AnimationMapper(animationState)
+                _ <- NConsole[F].clear()
+                _ <- NConsole[F].writeString(
+                  animation(frame)(
+                    statisticsInfo,
+                    statisticsInfo.currentInput,
+                    mayhemState,
+                    demoProgramExecutorState.circuitBreakerConfiguration,
+                    demoProgramExecutorState.isStarted
+                  ))
+                _ <- Temporal[F].sleep(frameDelay.toInt.milli)
+                nextFrame = frame + 1
+                _ <- if (!forever && nextFrame == animation.size) {
+                  Monad[F].unit
+                } else if (nextFrame == animation.size) {
+                  loop(frameDelay = delay)
+                } else {
+                  loop(
+                    frame = nextFrame,
+                    frameDelay = frameDelay / delayAccelerator,
+                  )
+                }
+              } yield ()
+            }
+            
+            loop(frameDelay = delay)
           }
 
         }
