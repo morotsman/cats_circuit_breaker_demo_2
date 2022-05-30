@@ -75,11 +75,11 @@ object Animator {
             animatorState <- state.get
             demoProgramExecutorState <- demoProgramExecutor.getState()
 
-            _ <- if (!animatorState.isStarted && demoProgramExecutorState.isStarted && animatorState.currentAnimationState != NOT_STARTED ) {
+            _ <- if (!animatorState.isStarted && demoProgramExecutorState.isStarted && animatorState.currentAnimationState != NOT_STARTED) {
               queue.offer(AnimationEvent(animatorState.currentAnimationState)) >> state.modify(s => (s.copy(
                 isStarted = demoProgramExecutorState.isStarted
               ), s))
-            } else if (!animatorState.isStarted && demoProgramExecutorState.isStarted && !animatorState.isFailing ) {
+            } else if (!animatorState.isStarted && demoProgramExecutorState.isStarted && !animatorState.isFailing) {
               queue.offer(AnimationEvent(CLOSED_SUCCEED)) >> state.modify(s => (s.copy(
                 isStarted = demoProgramExecutorState.isStarted
               ), s))
@@ -162,34 +162,29 @@ object Animator {
             } yield ()
           }
 
-          def showStateAnimation(animationState: AnimationState, frame: Int = 0, delay: Double = 500): F[Unit] = for {
-            demoProgramExecutorState <- demoProgramExecutor.getState()
-            statisticsInfo <- statistics.getStatisticsInfo()
-            mayhemState <- sourceOfMayhem.mayhemState()
-            animation <- Monad[F].pure(AnimationMapper(animationState))
-            _ <- NConsole[F].clear() >>
-              NConsole[F].writeString(
-                animation(frame)(
-                  statisticsInfo,
-                  statisticsInfo.currentInput,
-                  mayhemState,
-                  demoProgramExecutorState.circuitBreakerConfiguration,
-                  demoProgramExecutorState.isStarted
-                ))
-            _ <- Temporal[F].sleep(delay.toInt.milli)
-            _ <- showStateAnimation(
-              animationState,
-              frame = if (frame + 1 == animation.size) 0 else frame + 1,
-              delay = if (frame + 1 == animation.size) 500 else delay / 1.1
-            )
-          } yield ()
+          def showStateAnimation(
+                                  animationState: AnimationState,
+                                  frame: Int = 0,
+                                  delay: Double = 500
+                                ): F[Unit] =
+            showAnimation(animationState, frame, delay, delayAccelerator = 1.1, forever = true)
 
           def showTransitionAnimation
           (
             animationState: AnimationState,
             frame: Int = 0,
             delay: Double = 160
-          ): F[Unit] = if (frame >= AnimationMapper(animationState).size) {
+          ): F[Unit] =
+            showAnimation(animationState, frame, delay, delayAccelerator = 1.2, forever = false)
+
+          def showAnimation
+          (
+            animationState: AnimationState,
+            frame: Int,
+            delay: Double,
+            delayAccelerator: Double,
+            forever: Boolean
+          ): F[Unit] = if (!forever && frame >= AnimationMapper(animationState).size) {
             Monad[F].unit
           } else {
             for {
@@ -210,7 +205,7 @@ object Animator {
               _ <- showTransitionAnimation(
                 animationState,
                 frame + 1,
-                delay = delay / 1.2
+                delay = delay / delayAccelerator
               )
             } yield ()
           }
