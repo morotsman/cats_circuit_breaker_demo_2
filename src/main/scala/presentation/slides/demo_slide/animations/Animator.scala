@@ -64,12 +64,12 @@ object Animator {
   ): F[Animator[F]] =
     for {
       queue <- Queue.unbounded[F, Event]
-      cleanupQueue <- Queue.unbounded[F, Event]
+      cleanupCompleted <- Queue.unbounded[F, Event]
       animator =
         new Animator[F] {
 
           override def stop(): F[Unit] =
-            queue.offer(PoisonPill()) >> cleanupQueue.take.as(())
+            queue.offer(PoisonPill()) >> cleanupCompleted.take.as(())
 
           override def statisticsUpdated(statisticsInfo: StatisticsInfo): F[Unit] = for {
             animatorState <- state.get
@@ -138,7 +138,7 @@ object Animator {
               event <- queue.take
               _ <- maybeCancelableAnimation.traverse(_.cancel)
               _ <- event match {
-                case PoisonPill() => cleanupQueue.offer(CleanupCompleted())
+                case PoisonPill() => cleanupCompleted.offer(CleanupCompleted())
                 case AnimationEvent(animationState) =>
                   for {
                     _ <- state.modify(s => (s.copy(
