@@ -176,7 +176,7 @@ object Animator {
             forever: Boolean
           ): F[Unit] = {
 
-            def loop(frame: Int = 0, frameDelay: Double): F[Unit] = {
+            def loop(frame: Int, frameDelay: Double): F[Unit] = {
               for {
                 demoProgramExecutorState <- demoProgramExecutor.getState()
                 statisticsInfo <- statistics.getStatisticsInfo()
@@ -196,7 +196,10 @@ object Animator {
                 _ <- if (!forever && nextFrame == animation.size) {
                   Monad[F].unit
                 } else if (nextFrame == animation.size) {
-                  loop(frameDelay = delay)
+                  loop(
+                    frame = 0,
+                    frameDelay = delay
+                  )
                 } else {
                   loop(
                     frame = nextFrame,
@@ -205,8 +208,8 @@ object Animator {
                 }
               } yield ()
             }
-            
-            loop(frameDelay = delay)
+
+            loop(frame = 0, frameDelay = delay)
           }
 
         }
