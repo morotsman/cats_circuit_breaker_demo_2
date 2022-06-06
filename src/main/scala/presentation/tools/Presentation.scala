@@ -25,11 +25,11 @@ object Presentation {
       def executionLoop(): F[Unit] = {
         def loop(currentSlideIndex: Int = 0): F[Unit] = for {
           input <- NConsole[F].read()
+          _ <- slides(currentSlideIndex).userInput(input)
           slide <- input match {
             case Key(k) if k == SpecialKey.Left =>
               if (currentSlideIndex > 0) {
                 for {
-                  _ <- slides(currentSlideIndex).userInput(input)
                   _ <- NConsole[F].clear()
                   index = currentSlideIndex - 1
                   _ <- slides(index).show().start
@@ -40,7 +40,6 @@ object Presentation {
             case Key(k) if k == SpecialKey.Right =>
               if (currentSlideIndex < slides.length - 1) {
                 for {
-                  _ <- slides(currentSlideIndex).userInput(input)
                   _ <- NConsole[F].clear()
                   index = currentSlideIndex + 1
                   _ <- slides(index).show().start
@@ -51,7 +50,7 @@ object Presentation {
             case Key(k) if k == SpecialKey.Esc =>
               Monad[F].pure(None)
             case _ =>
-              slides(currentSlideIndex).userInput(input).as(Option(currentSlideIndex))
+              Monad[F].pure(Option(currentSlideIndex))
           }
           _ <- slide.fold(
             NConsole[F].clear() >>
