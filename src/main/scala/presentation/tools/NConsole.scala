@@ -4,7 +4,7 @@ package presentation.tools
 import presentation.tools.SpecialKey.SpecialKey
 
 import cats.effect.{IO, Sync}
-import org.jline.terminal.{Terminal, TerminalBuilder}
+import org.jline.terminal.TerminalBuilder
 import org.jline.utils.InfoCmp.Capability
 
 sealed trait Input
