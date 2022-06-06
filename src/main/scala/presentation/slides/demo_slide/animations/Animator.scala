@@ -176,7 +176,7 @@ object Animator {
 
           def showTransitionAnimation(animationState: AnimationState): F[Unit] =
             showAnimation(animationState, delay = 160, delayAccelerator = 1.2, forever = false) >>
-              Temporal[F].sleep(250.milli)
+              Temporal[F].sleep(150.milli)
 
           def showAnimation
           (
