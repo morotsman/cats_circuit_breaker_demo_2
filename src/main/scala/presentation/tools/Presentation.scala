@@ -22,47 +22,43 @@ object Presentation {
         _ <- executionLoop()
       } yield ()
 
-      def executionLoop(): F[Unit] = {
-        def loop(currentSlideIndex: Int = 0): F[Unit] = for {
-          input <- NConsole[F].read()
-          _ <- slides(currentSlideIndex).userInput(input)
-          slide <- input match {
-            case Key(k) if k == SpecialKey.Left =>
-              if (currentSlideIndex > 0) {
-                for {
-                  _ <- NConsole[F].clear()
-                  index = currentSlideIndex - 1
-                  _ <- slides(index).show().start
-                } yield Option(index)
-              } else {
-                Monad[F].pure(Option(currentSlideIndex))
-              }
-            case Key(k) if k == SpecialKey.Right =>
-              if (currentSlideIndex < slides.length - 1) {
-                for {
-                  _ <- NConsole[F].clear()
-                  index = currentSlideIndex + 1
-                  _ <- slides(index).show().start
-                } yield Option(index)
-              } else {
-                Monad[F].pure(Option(currentSlideIndex))
-              }
-            case Key(k) if k == SpecialKey.Esc =>
-              Monad[F].pure(None)
-            case _ =>
-              Monad[F].pure(Option(currentSlideIndex))
-          }
-          _ <- slide.fold(
-            NConsole[F].clear() >>
-              Bye[F].show() >>
-              Temporal[F].sleep(500.milli) >>
-              NConsole[F].clear() >>
-              Monad[F].unit
-          )(loop)
-        } yield ()
+      def executionLoop(): F[Int] =
+        slides.head.show().start >> Monad[F].tailRecM(0) { currentSlideIndex =>
+          for {
+            input <- NConsole[F].read()
+            _ <- slides(currentSlideIndex).userInput(input)
+            slide <- input match {
+              case Key(k) if k == SpecialKey.Left =>
+                if (currentSlideIndex > 0) {
+                  for {
+                    _ <- NConsole[F].clear()
+                    index = currentSlideIndex - 1
+                    _ <- slides(index).show().start
+                  } yield Either.left[Int, Int](index)
+                } else {
+                  Monad[F].pure(Either.left[Int, Int](currentSlideIndex))
+                }
+              case Key(k) if k == SpecialKey.Right =>
+                if (currentSlideIndex < slides.length - 1) {
+                  for {
+                    _ <- NConsole[F].clear()
+                    index = currentSlideIndex + 1
+                    _ <- slides(index).show().start
+                  } yield Either.left[Int, Int](index)
+                } else {
+                  Monad[F].pure(Either.left[Int, Int](currentSlideIndex))
+                }
+              case Key(k) if k == SpecialKey.Esc =>
+                NConsole[F].clear() >>
+                  Bye[F].show() >>
+                  Temporal[F].sleep(500.milli) >>
+                  NConsole[F].clear().as(Either.right[Int, Int](currentSlideIndex))
+              case _ =>
+                Monad[F].pure(Either.left[Int, Int](currentSlideIndex))
+            }
+          } yield slide
+        }
 
-        slides.head.show().start >> loop()
-      }
     }
   )
 }
