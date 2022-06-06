@@ -36,7 +36,7 @@ object CircuitBreakerSlide {
 
       override def userInput(input: Input): F[Unit] = {
         input match {
-          case Key(k) if k == SpecialKey.Right || k == SpecialKey.Left || k == SpecialKey.Esc=> animator.stop()
+          case Key(k) if k == SpecialKey.Right || k == SpecialKey.Left || k == SpecialKey.Esc => animator.stop()
           case _ => controlPanel.userInput(input)
         }
       }
