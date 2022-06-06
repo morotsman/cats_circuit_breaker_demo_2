@@ -7,7 +7,7 @@ import presentation.tools.{Character, Input}
 import presentation.util.Colors._
 
 object AnimationHelper {
-  val mb = 1024*1024
+  val mb = 1024 * 1024
 
   def showRuntimeInfo(
                        s: StatisticsInfo,
@@ -46,21 +46,34 @@ object AnimationHelper {
     }
   }
 
-  def threshold(previousInput: Option[Input], width: Int): String = {
-    previousInput.filter(_ == Character('a')).fold(constantWidth("Failure threshold: a +/- ", width)) { _ =>
-      constantWidth(s"Failure threshold: ${ANSI_GREEN + "a" + ANSI_RESET} +/-", width + 9)
+  def threshold(previousInput: Option[Input], width: Int, statisticsInfo: StatisticsInfo, editable: Boolean = false): String = {
+    if (editable) {
+      previousInput.filter(_ == Character('a')).fold(constantWidth("Failure threshold: a +/- ", width)) { _ =>
+        constantWidth(s"Failure threshold: ${ANSI_GREEN + "a" + ANSI_RESET} +/-", width + 9)
+      }
+    } else {
+      constantWidth(s"", width)
+    }
+
+  }
+
+  def resetTimeout(previousInput: Option[Input], width: Int, statisticsInfo: StatisticsInfo, editable: Boolean = false): String = {
+    if (editable) {
+      previousInput.filter(_ == Character('r')).fold(constantWidth("Reset timeout: r +/-", width)) { _ =>
+        constantWidth(s"Reset timeout: ${ANSI_GREEN + "r" + ANSI_RESET} +/-", width + 9)
+      }
+    } else {
+      constantWidth(s"", width)
     }
   }
 
-  def resetTimeout(previousInput: Option[Input], width: Int): String = {
-    previousInput.filter(_ == Character('r')).fold(constantWidth("Reset timeout: r +/-", width)) { _ =>
-      constantWidth(s"Reset timeout: ${ANSI_GREEN + "r" + ANSI_RESET} +/-", width + 9)
-    }
-  }
-
-  def maxResetTimeout(previousInput: Option[Input], width: Int): String = {
-    previousInput.filter(_ == Character('m')).fold(constantWidth("Max reset timeout: m +/- ", width)) { _ =>
-      constantWidth(s"Max reset timeout: ${ANSI_GREEN + "m" + ANSI_RESET} +/-", width + 9)
+  def maxResetTimeout(previousInput: Option[Input], width: Int, statisticsInfo: StatisticsInfo, editable: Boolean = false): String = {
+    if (editable) {
+      previousInput.filter(_ == Character('m')).fold(constantWidth("Max reset timeout: m +/- ", width)) { _ =>
+        constantWidth(s"Max reset timeout: ${ANSI_GREEN + "m" + ANSI_RESET} +/-", width + 9)
+      }
+    } else {
+      constantWidth(s"", width)
     }
   }
 
