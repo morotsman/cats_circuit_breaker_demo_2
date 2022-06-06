@@ -43,7 +43,7 @@ object Presentation {
                   _ <- slides(currentSlideIndex).userInput(input)
                   _ <- NConsole[F].clear()
                   index = currentSlideIndex + 1
-                  _x <- slides(index).show().start
+                  _ <- slides(index).show().start
                 } yield Option(index)
               } else {
                 Monad[F].pure(Option(currentSlideIndex))
