@@ -38,11 +38,11 @@ object Main extends IOApp.Simple {
         StateOfTheSystemAfterCircuitBreaker[IO],
         InContrast1[IO],
         InContrast2[IO],
+        InTheCode1[IO],
+        InTheCode2[IO],
         DemoTime[IO],
         ThePattern4[IO],
         circuitBreakerSlide,
-        InTheCode1[IO],
-        InTheCode2[IO],
         Conclusion[IO],
         References[IO]
       ))
