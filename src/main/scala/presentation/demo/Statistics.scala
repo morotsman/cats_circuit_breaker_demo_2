@@ -6,7 +6,10 @@ import presentation.demo.CircuitBreakerState.CircuitBreakerState
 import cats.Functor
 import cats.effect.{Ref, Temporal}
 import cats.implicits._
-import presentation.tools.{Input, NConsole}
+import presentation.tools.Input
+
+import monocle.Lens
+import monocle.macros.Lenses
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
@@ -42,6 +45,7 @@ trait Statistics[F[_]] {
   def registerCircuitBreakerStateListener(circuitBreakerStateListener: CircuitBreakerStateListener[F]): F[Unit]
 }
 
+@Lenses
 final case class StatisticsState[F[_]]
 (
   aggregated: StatisticsInfo,
@@ -59,6 +63,7 @@ object StatisticsState {
   )
 }
 
+@Lenses
 final case class StatisticsInfo
 (
   pendingRequests: Int,
@@ -90,52 +95,41 @@ object CircuitBreakerState extends Enumeration {
 object Statistics {
 
   def make[F[_] : Temporal : Functor](state: Ref[F, StatisticsState[F]]): Statistics[F] = new Statistics[F] {
-    override def requestSent(): F[Unit] =
-      state.modify(s => (s.copy(
-        ongoing = s.ongoing.copy(
-          pendingRequests = s.ongoing.pendingRequests + 1,
-          sentSinceLastReport = s.ongoing.sentSinceLastReport + 1
-        )
-      ), s))
 
-    override def requestCompleted(): F[Unit] =
-      state.modify(s => (s.copy(
-        ongoing = s.ongoing.copy(
-          pendingRequests = s.ongoing.pendingRequests - 1
-        )
-      ), s))
+    private val ongoing: Lens[StatisticsState[F], StatisticsInfo] = StatisticsState.ongoing[F]
+    private val aggregated = StatisticsState.aggregated[F]
+    private val statisticsListeners = StatisticsState.statisticsListeners[F]
+    private val circuitBreakerStateListeners = StatisticsState.circuitBreakerStateListeners[F]
 
-    override def programCalled(): F[Unit] =
-      state.modify(s => (s.copy(
-        ongoing = s.ongoing.copy(
-          programCalledSinceLastReport = s.ongoing.programCalledSinceLastReport + 1
-        )
-      ), s))
+    override def requestSent(): F[Unit] = state.update(
+      ongoing.andThen(StatisticsInfo.pendingRequests).modify(_ + 1) <<<
+        ongoing.andThen(StatisticsInfo.sentSinceLastReport).modify(_ + 1)
+    )
+
+    override def requestCompleted(): F[Unit] = state.update(
+      ongoing.andThen(StatisticsInfo.pendingRequests).modify(_ - 1)
+    )
+
+    override def programCalled(): F[Unit] = state.update(
+      ongoing.andThen(StatisticsInfo.programCalledSinceLastReport).modify(_ + 1)
+    )
 
     override def circuitBreakerStateChange(circuitBreakerState: CircuitBreakerState): F[Unit] = {
       for {
-        updatedState <- state.updateAndGet(s => s.copy(
-          ongoing = s.ongoing.copy(
-            circuitBreakerState = circuitBreakerState
-          )
-        ))
+        updatedState <- state.updateAndGet(
+          ongoing.andThen(StatisticsInfo.circuitBreakerState).replace(circuitBreakerState)
+        )
         _ <- updatedState.circuitBreakerStateListeners.traverse(_.circuitBreakerStateUpdated(circuitBreakerState))
       } yield ()
     }
 
-    override def requestCompletedIn(millis: Long): F[Unit] =
-      state.modify(s => (s.copy(
-        ongoing = s.ongoing.copy(
-          requestsCompletedIn = millis :: s.ongoing.requestsCompletedIn
-        )
-      ), s))
+    override def requestCompletedIn(millis: Long): F[Unit] = state.update(
+      ongoing.andThen(StatisticsInfo.requestsCompletedIn).modify(millis :: _)
+    )
 
-    override def programCompletedIn(millis: Long): F[Unit] =
-      state.modify(s => (s.copy(
-        ongoing = s.ongoing.copy(
-          programCompletedIn = millis :: s.ongoing.programCompletedIn
-        )
-      ), s))
+    override def programCompletedIn(millis: Long): F[Unit] = state.update(
+      ongoing.andThen(StatisticsInfo.programCompletedIn).modify(millis :: _)
+    )
 
     override def getStatisticsInfo(): F[StatisticsInfo] =
       state.get.map(_.aggregated)
@@ -143,15 +137,11 @@ object Statistics {
     override def aggregate(): F[Unit] = forever(1.seconds) {
       for {
         updatedState <- state.updateAndGet(state =>
-          state.copy(
-            aggregated = state.ongoing,
-            ongoing = state.ongoing.copy(
-              sentSinceLastReport = 0,
-              programCalledSinceLastReport = 0,
-              requestsCompletedIn = List(),
-              programCompletedIn = List()
-            )
-          )
+          (aggregated.replace(state.ongoing) <<<
+            ongoing.andThen(StatisticsInfo.sentSinceLastReport).replace(0) <<<
+            ongoing.andThen(StatisticsInfo.programCalledSinceLastReport).replace(0) <<<
+            ongoing.andThen(StatisticsInfo.requestsCompletedIn).replace(List()) <<<
+            ongoing.andThen(StatisticsInfo.programCompletedIn).replace(List())) (state)
         )
         _ <- updatedState.statisticsListeners.traverse(_.statisticsUpdated(updatedState.aggregated.copy(
           currentInput = updatedState.ongoing.currentInput
@@ -162,21 +152,19 @@ object Statistics {
     private def forever(delay: FiniteDuration)(effect: => F[_]): F[Unit] =
       Temporal[F].sleep(delay) >> effect >> forever(delay)(effect)
 
-    override def currentInput(input: Input): F[Unit] =
-      state.modify(s => (s.copy(
-        ongoing = s.ongoing.copy(
-          currentInput = Option(input)
-        )
-      ), s))
 
-    override def registerStatisticsListener(statisticsListener: StatisticsListener[F]): F[Unit] =
-      state.modify(s => (s.copy(
-        statisticsListeners = statisticsListener :: s.statisticsListeners
-      ), s))
+    override def currentInput(input: Input): F[Unit] = state.update(
+      ongoing.andThen(StatisticsInfo.currentInput).replace(Option(input))
+    )
+
+    override def registerStatisticsListener(statisticsListener: StatisticsListener[F]): F[Unit] = state.update(
+      statisticsListeners.modify(statisticsListener :: _)
+    )
 
     override def registerCircuitBreakerStateListener(circuitBreakerStateListener: CircuitBreakerStateListener[F]): F[Unit] =
-      state.modify(s => (s.copy(
-        circuitBreakerStateListeners = circuitBreakerStateListener :: s.circuitBreakerStateListeners
-      ), s))
+      state.update(
+        circuitBreakerStateListeners.modify(circuitBreakerStateListener :: _)
+      )
+      
   }
 }
