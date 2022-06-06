@@ -136,9 +136,7 @@ object DemoProgramExecutor {
         private def updateProgramProperty(modify: DemoProgramExecutorState[F] => DemoProgramExecutorState[F]): F[Unit] = for {
           s <- state.updateAndGet(modify)
           program <- programCreator(s)
-          _ <- state.update(s => s.copy(
-            demoProgram = Option(program)
-          ))
+          _ <- state.update(demoProgram.replace(Option(program)))
         } yield ()
 
         override def getState(): F[DemoProgramExecutorState[F]] =
