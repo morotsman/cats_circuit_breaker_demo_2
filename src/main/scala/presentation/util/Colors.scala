@@ -2,6 +2,7 @@ package com.github.morotsman
 package presentation.util
 
 object Colors {
+  val BLACK_BOLD = "\u001b[30;1m"
   val ANSI_RESET = "\u001B[0m"
   val ANSI_BLACK = "\u001B[30m"
   val ANSI_RED = "\u001B[31m"

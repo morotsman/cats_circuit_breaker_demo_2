@@ -17,10 +17,10 @@ object AnimationHelper {
     raw"""
          |
          |
-         |     ${show("Circuit breaker settings", 40)} ${show("Source of mayhem settings", 40)} ${show("Program info", 40)}
+         |     ${showTitle("Circuit breaker settings", 51)} ${showTitle("Source of mayhem settings", 51)} ${showTitle("Program info", 51)}
          |     ${showThreshold(circuitBreakerConfiguration, 40)} ${showSuccessLatency(mayhemState, 40)} ${showProgramCalled(s, 40)} ${showAverageProgramCallTime(s, 40)}
          |     ${showResetTimeout(circuitBreakerConfiguration, 40)} ${showRequestTimeout(mayhemState, 40)} ${showSourceOfMayhemCalled(s, 40)} ${showAverageSourceOfMayhemCallTime(s, 40)}
-         |     ${showMaxResetTimeout(circuitBreakerConfiguration, 40)} ${show("", 40)} ${showPendingRequests(s, 40)} ${"Memory left: " + (Runtime.getRuntime.freeMemory() / mb) + " mb"}
+         |     ${showMaxResetTimeout(circuitBreakerConfiguration, 40)} ${showTitle("", 51)} ${showPendingRequests(s, 40)} ${"Memory left: " + (Runtime.getRuntime.freeMemory() / mb) + " mb"}
          |
          |
          |
@@ -93,14 +93,14 @@ object AnimationHelper {
     if (s.programCompletedIn.nonEmpty) {
       constantWidth(s"Average call time: ${s.programCompletedIn.sum / s.programCompletedIn.length} ms", width)
     } else {
-      constantWidth(s"Average time: 0 ms", width)
+      constantWidth(s"Average call time: 0 ms", width)
     }
 
   def showAverageSourceOfMayhemCallTime(s: StatisticsInfo, width: Int): String =
     if (s.requestsCompletedIn.nonEmpty) {
       constantWidth(s"Average call time: ${s.requestsCompletedIn.sum / s.requestsCompletedIn.length} ms", width)
     } else {
-      constantWidth(s"Average time: 0 ms", width)
+      constantWidth(s"Average call time: 0 ms", width)
     }
 
   def showPendingRequests(s: StatisticsInfo, width: Int): String =
@@ -115,8 +115,8 @@ object AnimationHelper {
   def showCircuitBreakerState(s: StatisticsInfo, width: Int): String =
     constantWidth(s"The Circuit breaker is ${s.circuitBreakerState.toString}", width)
 
-  def show(s: String, width: Int): String =
-    constantWidth(s, width)
+  def showTitle(string: String, width: Int): String =
+    constantWidth(BLACK_BOLD + string + ANSI_RESET, width)
 
   def showThreshold(s: CircuitBreakerConfiguration, width: Int): String =
     constantWidth(s"Threshold:  ${s.maxFailures} failure", width)
