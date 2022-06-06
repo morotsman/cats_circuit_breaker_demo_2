@@ -34,9 +34,9 @@ object Presentation {
                     _ <- NConsole[F].clear()
                     index = currentSlideIndex - 1
                     _ <- slides(index).show().start
-                  } yield Either.left[Int, Int](index)
+                  } yield Either.left(index)
                 } else {
-                  Monad[F].pure(Either.left[Int, Int](currentSlideIndex))
+                  Monad[F].pure(Either.left(currentSlideIndex))
                 }
               case Key(k) if k == SpecialKey.Right =>
                 if (currentSlideIndex < slides.length - 1) {
@@ -44,17 +44,17 @@ object Presentation {
                     _ <- NConsole[F].clear()
                     index = currentSlideIndex + 1
                     _ <- slides(index).show().start
-                  } yield Either.left[Int, Int](index)
+                  } yield Either.left(index)
                 } else {
-                  Monad[F].pure(Either.left[Int, Int](currentSlideIndex))
+                  Monad[F].pure(Either.left(currentSlideIndex))
                 }
               case Key(k) if k == SpecialKey.Esc =>
                 NConsole[F].clear() >>
                   Bye[F].show() >>
                   Temporal[F].sleep(500.milli) >>
-                  NConsole[F].clear().as(Either.right[Int, Int](currentSlideIndex))
+                  NConsole[F].clear().as(Either.right(currentSlideIndex))
               case _ =>
-                Monad[F].pure(Either.left[Int, Int](currentSlideIndex))
+                Monad[F].pure(Either.left(currentSlideIndex))
             }
           } yield slide
         }
