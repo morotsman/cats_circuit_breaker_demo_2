@@ -62,7 +62,7 @@ object Presentation {
           )(loop)
         } yield ()
 
-        slides.head.show().start >> (loop(0))
+        slides.head.show().start >> loop()
       }
     }
   )
