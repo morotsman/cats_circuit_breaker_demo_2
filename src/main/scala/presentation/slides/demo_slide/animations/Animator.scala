@@ -12,9 +12,12 @@ import presentation.demo.CircuitBreakerState.CircuitBreakerState
 import presentation.slides.demo_slide.animations.AnimationState.{AnimationState, _}
 
 import cats.effect.std.Queue
+import monocle.Lens
+import monocle.macros.Lenses
 
 import scala.concurrent.duration.DurationInt
 
+@Lenses
 final case class AnimatorState
 (
   currentCircuitBreakerState: CircuitBreakerState,
@@ -61,7 +64,13 @@ object Animator {
     statistics: Statistics[F],
     sourceOfMayhem: SourceOfMayhem[F],
     demoProgramExecutor: DemoProgramExecutor[F],
-  ): F[Animator[F]] =
+  ): F[Animator[F]] = {
+
+    val isStarted: Lens[AnimatorState, Boolean] = AnimatorState.isStarted
+    val isFailing = AnimatorState.isFailing
+    val currentCircuitBreakerState = AnimatorState.currentCircuitBreakerState
+    val currentAnimationState = AnimatorState.currentAnimationState
+
     for {
       queue <- Queue.unbounded[F, Event]
       cleanupCompleted <- Queue.unbounded[F, Event]
@@ -76,17 +85,17 @@ object Animator {
             demoProgramExecutorState <- demoProgramExecutor.getState()
 
             _ <- if (!animatorState.isStarted && demoProgramExecutorState.isStarted && animatorState.currentAnimationState != NOT_STARTED) {
-              queue.offer(AnimationEvent(animatorState.currentAnimationState)) >> state.modify(s => (s.copy(
-                isStarted = demoProgramExecutorState.isStarted
-              ), s))
+              queue.offer(AnimationEvent(animatorState.currentAnimationState)) >> state.update(
+                isStarted.replace(demoProgramExecutorState.isStarted)
+              )
             } else if (!animatorState.isStarted && demoProgramExecutorState.isStarted && !animatorState.isFailing) {
-              queue.offer(AnimationEvent(CLOSED_SUCCEED)) >> state.modify(s => (s.copy(
-                isStarted = demoProgramExecutorState.isStarted
-              ), s))
+              queue.offer(AnimationEvent(CLOSED_SUCCEED)) >> state.update(
+                isStarted.replace(demoProgramExecutorState.isStarted)
+              )
             } else if (!animatorState.isStarted && demoProgramExecutorState.isStarted && animatorState.isFailing) {
-              queue.offer(AnimationEvent(CLOSED_FAILING)) >> state.modify(s => (s.copy(
-                isStarted = demoProgramExecutorState.isStarted
-              ), s))
+              queue.offer(AnimationEvent(CLOSED_FAILING)) >> state.update(
+                isStarted.replace(demoProgramExecutorState.isStarted)
+              )
             } else {
               Monad[F].unit
             }
@@ -109,9 +118,9 @@ object Animator {
             } else {
               Monad[F].unit
             }
-            _ <- state.modify(s => (s.copy(
-              isFailing = mayhemState.isFailing
-            ), s))
+            _ <- state.update(
+              isFailing.replace(mayhemState.isFailing)
+            )
           } yield ()
 
           override def circuitBreakerStateUpdated(circuitBreakerState: CircuitBreakerState): F[Unit] = for {
@@ -128,9 +137,9 @@ object Animator {
             } else {
               queue.offer(TransitionEvent(TRANSFER_CLOSED_TO_OPEN)) >> queue.offer(AnimationEvent(OPEN))
             }
-            _ <- state.modify(s => (s.copy(
-              currentCircuitBreakerState = circuitBreakerState
-            ), s))
+            _ <- state.update(
+              currentCircuitBreakerState.replace(circuitBreakerState)
+            )
           } yield ()
 
           override def animate(): F[Unit] = {
@@ -141,9 +150,9 @@ object Animator {
                 case PoisonPill() => cleanupCompleted.offer(CleanupCompleted())
                 case AnimationEvent(animationState) =>
                   for {
-                    _ <- state.modify(s => (s.copy(
-                      currentAnimationState = animationState
-                    ), s))
+                    _ <- state.update(
+                      currentAnimationState.replace(animationState)
+                    )
                     cancelable <- showStateAnimation(animationState).start
                     _ <- loop(Option(cancelable))
                   } yield ()
@@ -166,7 +175,8 @@ object Animator {
             showAnimation(animationState, delay = 500, delayAccelerator = 1.1, forever = true)
 
           def showTransitionAnimation(animationState: AnimationState): F[Unit] =
-            showAnimation(animationState, delay = 160, delayAccelerator = 1.2, forever = false)
+            showAnimation(animationState, delay = 160, delayAccelerator = 1.2, forever = false) >>
+              Temporal[F].sleep(250.milli)
 
           def showAnimation
           (
@@ -218,6 +228,7 @@ object Animator {
     }
 
     yield animator
+  }
 
 
 }

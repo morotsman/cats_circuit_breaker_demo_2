@@ -7,6 +7,10 @@ import cats.implicits._
 import presentation.demo.{SourceOfMayhem, Statistics}
 import presentation.tools.{Character, Input}
 
+import monocle.Lens
+import monocle.macros.Lenses
+
+@Lenses
 final case class ControlPanelState[F[_]]
 (
   previousInput: Option[Input],
@@ -33,6 +37,8 @@ object ControlPanel {
     demoProgramExecutor: DemoProgramExecutor[F],
     statistics: Statistics[F]
   ): ControlPanel[F] = new ControlPanel[F] {
+    private val previousInput: Lens[ControlPanelState[F], Option[Input]] = ControlPanelState.previousInput[F]
+
     override def getState(): F[ControlPanelState[F]] = state.get
 
     override def userInput(input: Input): F[Unit] = input match {
@@ -41,29 +47,17 @@ object ControlPanel {
       case Character(c) if c == 'f' =>
         sourceOfMayhem.toggleFailure() >> statistics.currentInput(input)
       case Character(c) if c == 'n' =>
-        state.modify(s => (s.copy(
-          previousInput = Option(input)
-        ), s)) >> statistics.currentInput(input)
+        state.update(previousInput.replace(Option(input))) >> statistics.currentInput(input)
       case Character(c) if c == 'l' =>
-        state.modify(s => (s.copy(
-          previousInput = Option(input)
-        ), s)) >> statistics.currentInput(input)
+        state.update(previousInput.replace(Option(input))) >> statistics.currentInput(input)
       case Character(c) if c == 't' =>
-        state.modify(s => (s.copy(
-          previousInput = Option(input)
-        ), s)) >> statistics.currentInput(input)
+        state.update(previousInput.replace(Option(input))) >> statistics.currentInput(input)
       case Character(c) if c == 'a' =>
-        state.modify(s => (s.copy(
-          previousInput = Option(input)
-        ), s)) >> statistics.currentInput(input)
+        state.update(previousInput.replace(Option(input))) >> statistics.currentInput(input)
       case Character(c) if c == 'r' =>
-        state.modify(s => (s.copy(
-          previousInput = Option(input)
-        ), s)) >> statistics.currentInput(input)
+        state.update(previousInput.replace(Option(input))) >> statistics.currentInput(input)
       case Character(c) if c == 'm' =>
-        state.modify(s => (s.copy(
-          previousInput = Option(input)
-        ), s)) >> statistics.currentInput(input)
+        state.update(previousInput.replace(Option(input))) >> statistics.currentInput(input)
       case Character(c) if c == '+' =>
         for {
           s <- state.get

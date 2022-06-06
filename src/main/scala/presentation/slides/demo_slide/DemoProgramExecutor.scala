@@ -8,9 +8,12 @@ import cats.effect.{Ref, Temporal}
 import presentation.demo.{CircuitBreakerState, DemoProgram, SourceOfMayhem, Statistics}
 
 import io.chrisdavenport.circuit.{Backoff, CircuitBreaker}
+import monocle.Lens
+import monocle.macros.Lenses
 
 import scala.concurrent.duration.{DurationLong, FiniteDuration}
 
+@Lenses
 final case class CircuitBreakerConfiguration(
                                               maxFailures: Int,
                                               resetTimeout: FiniteDuration,
@@ -25,6 +28,7 @@ object CircuitBreakerConfiguration {
   )
 }
 
+@Lenses
 final case class DemoProgramExecutorState[F[_]]
 (
   delayBetweenCallToSourceOfMayhemInNanos: Long,
@@ -77,11 +81,16 @@ object DemoProgramExecutor {
   ): F[DemoProgramExecutor[F]] = {
     val programCreator = createDemoProgram(sourceOfMayhem, statistics) _
 
+    val demoProgram: Lens[DemoProgramExecutorState[F], Option[DemoProgram[F]]] = DemoProgramExecutorState.demoProgram[F]
+    val delayBetweenCallToSourceOfMayhemInNanos = DemoProgramExecutorState.delayBetweenCallToSourceOfMayhemInNanos[F]
+    val circuitBreakerConfiguration = DemoProgramExecutorState.circuitBreakerConfiguration[F]
+    val isStarted = DemoProgramExecutorState.isStarted[F]
+
     for {
       initialProgram <- programCreator(DemoProgramExecutorState.make())
-      _ <- state.modify(s => (s.copy(
-        demoProgram = Option(initialProgram)
-      ), s))
+      _ <- state.update(
+        demoProgram.replace(Option(initialProgram))
+      )
       result <- Monad[F].pure(new DemoProgramExecutor[F] {
         override def execute(): F[Unit] = for {
           s <- state.get
@@ -92,67 +101,53 @@ object DemoProgramExecutor {
           _ <- execute()
         } yield ()
 
-        override def increaseDelayBetweenCallsToSourceOfMayhem(): F[Unit] =
-          state.modify(s => (s.copy(
-            delayBetweenCallToSourceOfMayhemInNanos = s.delayBetweenCallToSourceOfMayhemInNanos * 2
-          ), s))
+        override def increaseDelayBetweenCallsToSourceOfMayhem(): F[Unit] = state.update(
+          delayBetweenCallToSourceOfMayhemInNanos.modify(_ * 2)
+        )
 
-        override def decreaseDelayBetweenCallsToSourceOfMayhem(): F[Unit] =
-          state.modify(s => (s.copy(
-            delayBetweenCallToSourceOfMayhemInNanos = s.delayBetweenCallToSourceOfMayhemInNanos / 2
-          ), s))
+        override def decreaseDelayBetweenCallsToSourceOfMayhem(): F[Unit] = state.update(
+          delayBetweenCallToSourceOfMayhemInNanos.modify(_ / 2)
+        )
 
-        override def increaseMaxFailures(): F[Unit] =
-          updateProgramProperty(s => s.copy(
-            circuitBreakerConfiguration = s.circuitBreakerConfiguration.copy(
-              maxFailures = s.circuitBreakerConfiguration.maxFailures * 2
-            )))
+        override def increaseMaxFailures(): F[Unit] = updateProgramProperty {
+          circuitBreakerConfiguration.andThen(CircuitBreakerConfiguration.maxFailures).modify(_ * 2)
+        }
 
-        override def decreaseMaxFailures(): F[Unit] =
-          updateProgramProperty(s => s.copy(
-            circuitBreakerConfiguration = s.circuitBreakerConfiguration.copy(
-              maxFailures = s.circuitBreakerConfiguration.maxFailures / 2
-            )))
+        override def decreaseMaxFailures(): F[Unit] = updateProgramProperty {
+          circuitBreakerConfiguration.andThen(CircuitBreakerConfiguration.maxFailures).modify(_ / 2)
+        }
 
-        override def increaseResetTimeout(): F[Unit] =
-          updateProgramProperty(s => s.copy(
-            circuitBreakerConfiguration = s.circuitBreakerConfiguration.copy(
-              resetTimeout = s.circuitBreakerConfiguration.resetTimeout * 2
-            )))
+        override def increaseResetTimeout(): F[Unit] = updateProgramProperty {
+          circuitBreakerConfiguration.andThen(CircuitBreakerConfiguration.resetTimeout).modify(_ * 2)
+        }
 
-        override def decreaseResetTimeout(): F[Unit] =
-          updateProgramProperty(s => s.copy(
-            circuitBreakerConfiguration = s.circuitBreakerConfiguration.copy(
-              resetTimeout = s.circuitBreakerConfiguration.resetTimeout / 2
-            )))
+        override def decreaseResetTimeout(): F[Unit] = updateProgramProperty {
+          circuitBreakerConfiguration.andThen(CircuitBreakerConfiguration.resetTimeout).modify(_ / 2)
+        }
 
-        override def increaseMaxResetTimeout(): F[Unit] =
-          updateProgramProperty(s => s.copy(
-            circuitBreakerConfiguration = s.circuitBreakerConfiguration.copy(
-              maxResetTimeout = s.circuitBreakerConfiguration.maxResetTimeout * 2
-            )))
+        override def increaseMaxResetTimeout(): F[Unit] = updateProgramProperty {
+          circuitBreakerConfiguration.andThen(CircuitBreakerConfiguration.maxResetTimeout).modify(_ * 2)
+        }
 
-        override def decreaseMaxResetTimeout(): F[Unit] =
-          updateProgramProperty(s => s.copy(
-            circuitBreakerConfiguration = s.circuitBreakerConfiguration.copy(
-              maxResetTimeout = s.circuitBreakerConfiguration.maxResetTimeout / 2
-            )))
+        override def decreaseMaxResetTimeout(): F[Unit] = updateProgramProperty {
+          circuitBreakerConfiguration.andThen(CircuitBreakerConfiguration.maxResetTimeout).modify(_ / 2)
+        }
 
         private def updateProgramProperty(modify: DemoProgramExecutorState[F] => DemoProgramExecutorState[F]): F[Unit] = for {
           s <- state.updateAndGet(modify)
           program <- programCreator(s)
-          _ <- state.modify(s => (s.copy(
+          _ <- state.update(s => s.copy(
             demoProgram = Option(program)
-          ), s))
+          ))
         } yield ()
 
         override def getState(): F[DemoProgramExecutorState[F]] =
           state.get
 
-        override def toggleStarted(): F[Unit] =
-          state.modify(s => (s.copy(
-            isStarted = !s.isStarted
-          ),s))
+        override def toggleStarted(): F[Unit] = state.update(
+          isStarted.modify(!_)
+        )
+
       })
     } yield result
   }

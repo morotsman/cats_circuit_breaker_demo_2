@@ -4,6 +4,8 @@ package presentation.demo
 import cats.implicits._
 import cats.MonadError
 import cats.effect.{Ref, Temporal}
+import monocle.Lens
+import monocle.macros.Lenses
 
 import scala.concurrent.duration.DurationLong
 
@@ -23,6 +25,7 @@ trait SourceOfMayhem[F[_]] {
   def mayhemState(): F[MayhemState]
 }
 
+@Lenses
 final case class MayhemState(
                               isFailing: Boolean,
                               successLatencyInMillis: Long,
@@ -41,6 +44,10 @@ object SourceOfMayhem {
 
   def make[F[_] : Temporal : MonadError[*[_], Throwable]](state: Ref[F, MayhemState]): SourceOfMayhem[F] =
     new SourceOfMayhem[F] {
+      private val isFailing: Lens[MayhemState, Boolean] = MayhemState.isFailing
+      private val successLatencyInMillis = MayhemState.successLatencyInMillis
+      private val requestTimeoutInMillis = MayhemState.requestTimeoutInMillis
+
       override def mightFail(): F[Unit] =
         state.get >>= (currentState => if (!currentState.isFailing) {
           Temporal[F].sleep(currentState.successLatencyInMillis.millis) >> MonadError[F, Throwable].unit
@@ -49,19 +56,19 @@ object SourceOfMayhem {
         })
 
       override def toggleFailure(): F[Unit] =
-        state.modify(s => (s.copy(isFailing = !s.isFailing), s))
+        state.update(isFailing.modify(!_))
 
       override def increaseSuccessLatency(): F[Unit] =
-        state.modify(s => (s.copy(successLatencyInMillis = s.successLatencyInMillis * 2), s))
+        state.update(successLatencyInMillis.modify(_ * 2))
 
       override def increaseRequestTimeout(): F[Unit] =
-        state.modify(s => (s.copy(requestTimeoutInMillis = s.requestTimeoutInMillis * 2), s))
+        state.update(requestTimeoutInMillis.modify(_ * 2))
 
       override def decreaseSuccessLatency(): F[Unit] =
-        state.modify(s => (s.copy(successLatencyInMillis = s.successLatencyInMillis / 2), s))
+        state.update(successLatencyInMillis.modify(_ / 2))
 
       override def decreaseRequestTimeout(): F[Unit] =
-        state.modify(s => (s.copy(requestTimeoutInMillis = s.requestTimeoutInMillis / 2), s))
+        state.update(requestTimeoutInMillis.modify(_ / 2))
 
       override def mayhemState(): F[MayhemState] =
         state.get

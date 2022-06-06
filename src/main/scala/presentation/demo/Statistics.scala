@@ -165,6 +165,6 @@ object Statistics {
       state.update(
         circuitBreakerStateListeners.modify(circuitBreakerStateListener :: _)
       )
-      
+
   }
 }
