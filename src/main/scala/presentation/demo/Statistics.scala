@@ -137,10 +137,10 @@ object Statistics {
     override def aggregate(): F[Unit] = forever(1.seconds) {
       for {
         updatedState <- state.updateAndGet(state =>
-          (aggregated.replace(state.ongoing) <<<
-            ongoing.andThen(StatisticsInfo.sentSinceLastReport).replace(0) <<<
-            ongoing.andThen(StatisticsInfo.programCalledSinceLastReport).replace(0) <<<
-            ongoing.andThen(StatisticsInfo.requestsCompletedIn).replace(List()) <<<
+          (aggregated.replace(state.ongoing) >>>
+            ongoing.andThen(StatisticsInfo.sentSinceLastReport).replace(0) >>>
+            ongoing.andThen(StatisticsInfo.programCalledSinceLastReport).replace(0) >>>
+            ongoing.andThen(StatisticsInfo.requestsCompletedIn).replace(List()) >>>
             ongoing.andThen(StatisticsInfo.programCompletedIn).replace(List())) (state)
         )
         _ <- updatedState.statisticsListeners.traverse(_.statisticsUpdated(updatedState.aggregated.copy(
