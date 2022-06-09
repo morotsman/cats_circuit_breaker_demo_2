@@ -40,11 +40,11 @@ object NConsole {
     Sync[F].delay(
       new NConsole[F] {
         override def read(): F[Input] = Sync[F].blocking {
-          var input = reader.read().toChar
+          val input = reader.read().toChar
           if (input == 27) {
-            input = reader.read().toChar
+            val input = reader.read().toChar
             if (input == '[') {
-              input = reader.read().toChar
+              val input = reader.read().toChar
               input match {
                 case 'A' => Key(SpecialKey.Up)
                 case 'D' => Key(SpecialKey.Left)
