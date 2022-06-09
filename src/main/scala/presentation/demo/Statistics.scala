@@ -36,7 +36,7 @@ trait Statistics[F[_]] {
 
   def circuitBreakerStateChange(state: CircuitBreakerState): F[Unit]
 
-  def getStatisticsInfo(): F[StatisticsInfo]
+  def getStatisticsInfo: F[StatisticsInfo]
 
   def aggregate(): F[Unit]
 
@@ -102,7 +102,7 @@ object Statistics {
     private val circuitBreakerStateListeners = StatisticsState.circuitBreakerStateListeners[F]
 
     override def requestSent(): F[Unit] = state.update(
-      ongoing.andThen(StatisticsInfo.pendingRequests).modify(_ + 1) <<<
+      ongoing.andThen(StatisticsInfo.pendingRequests).modify(_ + 1) >>>
         ongoing.andThen(StatisticsInfo.sentSinceLastReport).modify(_ + 1)
     )
 
@@ -136,13 +136,13 @@ object Statistics {
 
     override def aggregate(): F[Unit] = forever(1.seconds) {
       for {
-        updatedState <- state.updateAndGet(state =>
+        updatedState <- state.updateAndGet { state =>
           (aggregated.replace(state.ongoing) >>>
             ongoing.andThen(StatisticsInfo.sentSinceLastReport).replace(0) >>>
             ongoing.andThen(StatisticsInfo.programCalledSinceLastReport).replace(0) >>>
             ongoing.andThen(StatisticsInfo.requestsCompletedIn).replace(List()) >>>
             ongoing.andThen(StatisticsInfo.programCompletedIn).replace(List())) (state)
-        )
+        }
         _ <- updatedState.statisticsListeners.traverse(_.statisticsUpdated(updatedState.aggregated.copy(
           currentInput = updatedState.ongoing.currentInput
         )))
@@ -151,7 +151,6 @@ object Statistics {
 
     private def forever(delay: FiniteDuration)(effect: => F[_]): F[Unit] =
       Temporal[F].sleep(delay) >> effect >> forever(delay)(effect)
-
 
     override def currentInput(input: Input): F[Unit] = state.update(
       ongoing.andThen(StatisticsInfo.currentInput).replace(Option(input))

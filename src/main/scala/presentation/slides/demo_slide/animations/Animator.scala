@@ -189,7 +189,7 @@ object Animator {
             def loop(frame: Int, frameDelay: Double): F[Unit] = {
               for {
                 demoProgramExecutorState <- demoProgramExecutor.getState()
-                statisticsInfo <- statistics.getStatisticsInfo()
+                statisticsInfo <- statistics.getStatisticsInfo
                 mayhemState <- sourceOfMayhem.mayhemState()
                 animation = AnimationMapper(animationState)
                 _ <- NConsole[F].clear()

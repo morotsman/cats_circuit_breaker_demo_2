@@ -5,12 +5,6 @@ import cats.implicits._
 import cats.MonadError
 import io.chrisdavenport.circuit.CircuitBreaker
 
-final case class DemoProgramState()
-
-object DemoProgramState {
-  def make(): DemoProgramState = DemoProgramState()
-}
-
 trait DemoProgram[F[_]] {
   def run(): F[Unit]
 }

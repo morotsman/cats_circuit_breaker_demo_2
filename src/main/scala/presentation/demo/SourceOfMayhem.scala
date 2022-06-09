@@ -50,7 +50,7 @@ object SourceOfMayhem {
 
       override def mightFail(): F[Unit] =
         state.get >>= (currentState => if (!currentState.isFailing) {
-          Temporal[F].sleep(currentState.successLatencyInMillis.millis) >> MonadError[F, Throwable].unit
+          Temporal[F].sleep(currentState.successLatencyInMillis.millis)
         } else {
           Temporal[F].sleep(currentState.requestTimeoutInMillis.millis) >> MonadError[F, Throwable].raiseError(new RuntimeException("Boooom"))
         })
