@@ -83,22 +83,18 @@ object Animator {
 
           def executorStarted(programStarted: Boolean): F[Unit] = for {
             animatorState <- state.get
-
             _ <- if (!animatorState.isStarted && programStarted && animatorState.currentAnimationState != NOT_STARTED) {
-              queue.offer(AnimationEvent(animatorState.currentAnimationState)) >> state.update(
-                isStarted.replace(programStarted)
-              )
+              queue.offer(AnimationEvent(animatorState.currentAnimationState))
             } else if (!animatorState.isStarted && programStarted && !animatorState.isFailing) {
-              queue.offer(AnimationEvent(CLOSED_SUCCEED)) >> state.update(
-                isStarted.replace(programStarted)
-              )
+              queue.offer(AnimationEvent(CLOSED_SUCCEED))
             } else if (!animatorState.isStarted && programStarted && animatorState.isFailing) {
-              queue.offer(AnimationEvent(CLOSED_FAILING)) >> state.update(
-                isStarted.replace(programStarted)
-              )
+              queue.offer(AnimationEvent(CLOSED_FAILING))
             } else {
               Monad[F].unit
             }
+            _ <- state.update(
+              isStarted.replace(programStarted)
+            )
           } yield ()
 
           override def outcomeUpdated(programIsFailing: Boolean): F[Unit] = for {
