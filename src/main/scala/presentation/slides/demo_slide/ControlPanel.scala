@@ -13,12 +13,12 @@ import monocle.macros.Lenses
 @Lenses
 final case class ControlPanelState[F[_]]
 (
-  previousInput: Option[Input],
+  input: Option[Input],
 )
 
 object ControlPanelState {
   def make[F[_]](): ControlPanelState[F] = ControlPanelState[F](
-    previousInput = None,
+    input = None,
   )
 }
 
@@ -34,34 +34,33 @@ object ControlPanel {
   (
     state: Ref[F, ControlPanelState[F]],
     sourceOfMayhem: SourceOfMayhem[F],
-    demoProgramExecutor: DemoProgramExecutor[F],
-    statistics: Statistics[F]
+    demoProgramExecutor: DemoProgramExecutor[F]
   ): ControlPanel[F] = new ControlPanel[F] {
-    private val previousInput: Lens[ControlPanelState[F], Option[Input]] = ControlPanelState.previousInput[F]
+    private val input: Lens[ControlPanelState[F], Option[Input]] = ControlPanelState.input[F]
 
     override def getState(): F[ControlPanelState[F]] = state.get
 
-    override def userInput(input: Input): F[Unit] = input match {
+    override def userInput(newInput: Input): F[Unit] = newInput match {
       case Character(c) if c == 's' =>
-        demoProgramExecutor.toggleStarted() >> statistics.currentInput(input)
+        demoProgramExecutor.toggleStarted()
       case Character(c) if c == 'f' =>
-        sourceOfMayhem.toggleFailure() >> statistics.currentInput(input)
+        sourceOfMayhem.toggleFailure()
       case Character(c) if c == 'n' =>
-        state.update(previousInput.replace(Option(input))) >> statistics.currentInput(input)
+        state.update(input.replace(Option(newInput)))
       case Character(c) if c == 'l' =>
-        state.update(previousInput.replace(Option(input))) >> statistics.currentInput(input)
+        state.update(input.replace(Option(newInput)))
       case Character(c) if c == 't' =>
-        state.update(previousInput.replace(Option(input))) >> statistics.currentInput(input)
+        state.update(input.replace(Option(newInput)))
       case Character(c) if c == 'a' =>
-        state.update(previousInput.replace(Option(input))) >> statistics.currentInput(input)
+        state.update(input.replace(Option(newInput)))
       case Character(c) if c == 'r' =>
-        state.update(previousInput.replace(Option(input))) >> statistics.currentInput(input)
+        state.update(input.replace(Option(newInput)))
       case Character(c) if c == 'm' =>
-        state.update(previousInput.replace(Option(input))) >> statistics.currentInput(input)
+        state.update(input.replace(Option(newInput)))
       case Character(c) if c == '+' =>
         for {
           s <- state.get
-          _ <- s.previousInput.traverse {
+          _ <- s.input.traverse {
             case Character(c) if c == 'n' =>
               demoProgramExecutor.decreaseDelayBetweenCallsToSourceOfMayhem()
             case Character(c) if c == 'l' =>
@@ -81,7 +80,7 @@ object ControlPanel {
       case Character(c) if c == '-' =>
         for {
           s <- state.get
-          _ <- s.previousInput.traverse {
+          _ <- s.input.traverse {
             case Character(c) if c == 'n' =>
               demoProgramExecutor.increaseDelayBetweenCallsToSourceOfMayhem()
             case Character(c) if c == 'l' =>

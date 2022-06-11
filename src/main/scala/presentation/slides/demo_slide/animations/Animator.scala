@@ -5,8 +5,8 @@ import cats.effect.implicits._
 import cats.implicits._
 import cats.Monad
 import cats.effect.{Fiber, Ref, Temporal}
-import presentation.demo.{CircuitBreakerState, CircuitBreakerStateListener, SourceOfMayhem, Statistics, StatisticsInfo, StatisticsListener}
-import presentation.slides.demo_slide.DemoProgramExecutor
+import presentation.demo.{CircuitBreakerState, CircuitBreakerStateListener, OutcomeListener, SourceOfMayhem, Statistics, StatisticsInfo}
+import presentation.slides.demo_slide.{ControlPanel, DemoProgramExecutor, ExecutorStartedListener}
 import presentation.tools.NConsole
 import presentation.demo.CircuitBreakerState.CircuitBreakerState
 import presentation.slides.demo_slide.animations.AnimationState.{AnimationState, _}
@@ -35,7 +35,7 @@ object AnimatorState {
   )
 }
 
-trait Animator[F[_]] extends StatisticsListener[F] with CircuitBreakerStateListener[F] {
+trait Animator[F[_]] extends CircuitBreakerStateListener[F] with ExecutorStartedListener[F] with OutcomeListener[F] {
   def animate(): F[Unit]
 
   def stop(): F[Unit]
@@ -64,6 +64,7 @@ object Animator {
     statistics: Statistics[F],
     sourceOfMayhem: SourceOfMayhem[F],
     demoProgramExecutor: DemoProgramExecutor[F],
+    controlPanel: ControlPanel[F]
   ): F[Animator[F]] = {
 
     val isStarted: Lens[AnimatorState, Boolean] = AnimatorState.isStarted
@@ -80,46 +81,47 @@ object Animator {
           override def stop(): F[Unit] =
             queue.offer(PoisonPill()) >> cleanupCompleted.take.as(())
 
-          override def statisticsUpdated(statisticsInfo: StatisticsInfo): F[Unit] = for {
+          def executorStarted(programStarted: Boolean): F[Unit] = for {
             animatorState <- state.get
-            demoProgramExecutorState <- demoProgramExecutor.getState()
 
-            _ <- if (!animatorState.isStarted && demoProgramExecutorState.isStarted && animatorState.currentAnimationState != NOT_STARTED) {
+            _ <- if (!animatorState.isStarted && programStarted && animatorState.currentAnimationState != NOT_STARTED) {
               queue.offer(AnimationEvent(animatorState.currentAnimationState)) >> state.update(
-                isStarted.replace(demoProgramExecutorState.isStarted)
+                isStarted.replace(programStarted)
               )
-            } else if (!animatorState.isStarted && demoProgramExecutorState.isStarted && !animatorState.isFailing) {
+            } else if (!animatorState.isStarted && programStarted && !animatorState.isFailing) {
               queue.offer(AnimationEvent(CLOSED_SUCCEED)) >> state.update(
-                isStarted.replace(demoProgramExecutorState.isStarted)
+                isStarted.replace(programStarted)
               )
-            } else if (!animatorState.isStarted && demoProgramExecutorState.isStarted && animatorState.isFailing) {
+            } else if (!animatorState.isStarted && programStarted && animatorState.isFailing) {
               queue.offer(AnimationEvent(CLOSED_FAILING)) >> state.update(
-                isStarted.replace(demoProgramExecutorState.isStarted)
+                isStarted.replace(programStarted)
               )
             } else {
               Monad[F].unit
             }
+          } yield ()
 
-            mayhemState <- sourceOfMayhem.mayhemState()
+          override def outcomeUpdated(programIsFailing: Boolean): F[Unit] = for {
+            animatorState <- state.get
             _ <- if (
               animatorState.currentCircuitBreakerState == CircuitBreakerState.CLOSED &&
                 animatorState.isStarted &&
                 animatorState.isFailing &&
-                !mayhemState.isFailing
+                !programIsFailing
             ) {
               queue.offer(AnimationEvent(CLOSED_SUCCEED))
             } else if (
               animatorState.currentCircuitBreakerState == CircuitBreakerState.CLOSED &&
                 animatorState.isStarted &&
                 !animatorState.isFailing &&
-                mayhemState.isFailing
+                programIsFailing
             ) {
               queue.offer(AnimationEvent(CLOSED_FAILING))
             } else {
               Monad[F].unit
             }
             _ <- state.update(
-              isFailing.replace(mayhemState.isFailing)
+              isFailing.replace(programIsFailing)
             )
           } yield ()
 
@@ -188,15 +190,16 @@ object Animator {
 
             def loop(frame: Int, frameDelay: Double): F[Unit] = {
               for {
-                demoProgramExecutorState <- demoProgramExecutor.getState()
+                demoProgramExecutorState <- demoProgramExecutor.getState
                 statisticsInfo <- statistics.getStatisticsInfo
+                controlPanel <- controlPanel.getState()
                 mayhemState <- sourceOfMayhem.mayhemState()
                 animation = AnimationMapper(animationState)
                 _ <- NConsole[F].clear()
                 _ <- NConsole[F].writeString(
                   animation(frame)(
                     statisticsInfo,
-                    statisticsInfo.currentInput,
+                    controlPanel.input,
                     mayhemState,
                     demoProgramExecutorState.circuitBreakerConfiguration,
                     demoProgramExecutorState.isStarted
@@ -223,8 +226,9 @@ object Animator {
           }
 
         }
-      _ <- statistics.registerStatisticsListener(animator)
+      _ <- demoProgramExecutor.registerExecutorListener(animator)
       _ <- statistics.registerCircuitBreakerStateListener(animator)
+      _ <- sourceOfMayhem.registerOutcomeListener(animator)
     }
 
     yield animator

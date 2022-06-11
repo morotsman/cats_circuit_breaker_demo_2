@@ -13,16 +13,11 @@ import monocle.macros.Lenses
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
-trait StatisticsListener[F[_]] {
-  def statisticsUpdated(statisticsInfo: StatisticsInfo): F[Unit]
-}
-
 trait CircuitBreakerStateListener[F[_]] {
   def circuitBreakerStateUpdated(state: CircuitBreakerState): F[Unit]
 }
 
 trait Statistics[F[_]] {
-  def currentInput(input: Input): F[Unit]
 
   def requestSent(): F[Unit]
 
@@ -40,8 +35,6 @@ trait Statistics[F[_]] {
 
   def aggregate(): F[Unit]
 
-  def registerStatisticsListener(statisticsListener: StatisticsListener[F]): F[Unit]
-
   def registerCircuitBreakerStateListener(circuitBreakerStateListener: CircuitBreakerStateListener[F]): F[Unit]
 }
 
@@ -50,7 +43,6 @@ final case class StatisticsState[F[_]]
 (
   aggregated: StatisticsInfo,
   ongoing: StatisticsInfo,
-  statisticsListeners: List[StatisticsListener[F]],
   circuitBreakerStateListeners: List[CircuitBreakerStateListener[F]]
 )
 
@@ -58,7 +50,6 @@ object StatisticsState {
   def make[F[_]](): StatisticsState[F] = StatisticsState(
     ongoing = StatisticsInfo.make(),
     aggregated = StatisticsInfo.make(),
-    statisticsListeners = List.empty,
     circuitBreakerStateListeners = List.empty
   )
 }
@@ -71,8 +62,7 @@ final case class StatisticsInfo
   programCalledSinceLastReport: Int,
   circuitBreakerState: CircuitBreakerState,
   requestsCompletedIn: List[Long], // TODO maybe just sum?
-  programCompletedIn: List[Long],
-  currentInput: Option[Input]
+  programCompletedIn: List[Long]
 )
 
 object StatisticsInfo {
@@ -82,8 +72,7 @@ object StatisticsInfo {
     programCalledSinceLastReport = 0,
     circuitBreakerState = CircuitBreakerState.CLOSED,
     requestsCompletedIn = List.empty, // TODO mem usage?
-    programCompletedIn = List.empty,
-    currentInput = None
+    programCompletedIn = List.empty
   )
 }
 
@@ -98,7 +87,6 @@ object Statistics {
 
     private val ongoing: Lens[StatisticsState[F], StatisticsInfo] = StatisticsState.ongoing[F]
     private val aggregated = StatisticsState.aggregated[F]
-    private val statisticsListeners = StatisticsState.statisticsListeners[F]
     private val circuitBreakerStateListeners = StatisticsState.circuitBreakerStateListeners[F]
 
     override def requestSent(): F[Unit] = state.update(
@@ -136,29 +124,18 @@ object Statistics {
 
     override def aggregate(): F[Unit] = forever(1.seconds) {
       for {
-        updatedState <- state.updateAndGet { state =>
+        _ <- state.updateAndGet { state =>
           (aggregated.replace(state.ongoing) >>>
             ongoing.andThen(StatisticsInfo.sentSinceLastReport).replace(0) >>>
             ongoing.andThen(StatisticsInfo.programCalledSinceLastReport).replace(0) >>>
             ongoing.andThen(StatisticsInfo.requestsCompletedIn).replace(List()) >>>
             ongoing.andThen(StatisticsInfo.programCompletedIn).replace(List())) (state)
         }
-        _ <- updatedState.statisticsListeners.traverse(_.statisticsUpdated(updatedState.aggregated.copy(
-          currentInput = updatedState.ongoing.currentInput
-        )))
       } yield ()
     }
 
     private def forever(delay: FiniteDuration)(effect: => F[_]): F[Unit] =
       Temporal[F].sleep(delay) >> effect >> forever(delay)(effect)
-
-    override def currentInput(input: Input): F[Unit] = state.update(
-      ongoing.andThen(StatisticsInfo.currentInput).replace(Option(input))
-    )
-
-    override def registerStatisticsListener(statisticsListener: StatisticsListener[F]): F[Unit] = state.update(
-      statisticsListeners.modify(statisticsListener :: _)
-    )
 
     override def registerCircuitBreakerStateListener(circuitBreakerStateListener: CircuitBreakerStateListener[F]): F[Unit] =
       state.update(

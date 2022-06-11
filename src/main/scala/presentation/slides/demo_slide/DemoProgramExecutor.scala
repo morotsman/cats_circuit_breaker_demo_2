@@ -5,7 +5,7 @@ import cats.implicits._
 import cats.effect.implicits._
 import cats.{Applicative, Monad}
 import cats.effect.{Ref, Temporal}
-import presentation.demo.{CircuitBreakerState, DemoProgram, SourceOfMayhem, Statistics}
+import presentation.demo.{CircuitBreakerState, DemoProgram, SourceOfMayhem, Statistics, StatisticsState}
 
 import io.chrisdavenport.circuit.{Backoff, CircuitBreaker}
 import monocle.Lens
@@ -34,7 +34,8 @@ final case class DemoProgramExecutorState[F[_]]
   delayBetweenCallToSourceOfMayhemInNanos: Long,
   demoProgram: Option[DemoProgram[F]],
   circuitBreakerConfiguration: CircuitBreakerConfiguration,
-  isStarted: Boolean
+  isStarted: Boolean,
+  executorStartedListeners: List[ExecutorStartedListener[F]]
 )
 
 object DemoProgramExecutorState {
@@ -44,12 +45,19 @@ object DemoProgramExecutorState {
     delayBetweenCallToSourceOfMayhemInNanos = oneSecondInNanos,
     demoProgram = None,
     circuitBreakerConfiguration = CircuitBreakerConfiguration.make(),
-    isStarted = false
+    isStarted = false,
+    executorStartedListeners = List.empty
   )
+}
+
+trait ExecutorStartedListener[F[_]] {
+  def executorStarted(isStarted: Boolean): F[Unit]
 }
 
 trait DemoProgramExecutor[F[_]] {
   def execute(): F[Unit]
+
+  def registerExecutorListener(listener: ExecutorStartedListener[F]): F[Unit]
 
   def increaseDelayBetweenCallsToSourceOfMayhem(): F[Unit]
 
@@ -69,7 +77,7 @@ trait DemoProgramExecutor[F[_]] {
 
   def toggleStarted(): F[Unit]
 
-  def getState(): F[DemoProgramExecutorState[F]]
+  def getState: F[DemoProgramExecutorState[F]]
 }
 
 object DemoProgramExecutor {
@@ -82,6 +90,7 @@ object DemoProgramExecutor {
     val programCreator = createDemoProgram(sourceOfMayhem, statistics) _
 
     val demoProgram: Lens[DemoProgramExecutorState[F], Option[DemoProgram[F]]] = DemoProgramExecutorState.demoProgram[F]
+    val executorStartedListeners = DemoProgramExecutorState.executorStartedListeners[F]
     val delayBetweenCallToSourceOfMayhemInNanos = DemoProgramExecutorState.delayBetweenCallToSourceOfMayhemInNanos[F]
     val circuitBreakerConfiguration = DemoProgramExecutorState.circuitBreakerConfiguration[F]
     val isStarted = DemoProgramExecutorState.isStarted[F]
@@ -139,13 +148,20 @@ object DemoProgramExecutor {
           _ <- state.update(demoProgram.replace(Option(program)))
         } yield ()
 
-        override def getState(): F[DemoProgramExecutorState[F]] =
+        override def getState: F[DemoProgramExecutorState[F]] =
           state.get
 
-        override def toggleStarted(): F[Unit] = state.update(
-          isStarted.modify(!_)
-        )
+        override def toggleStarted(): F[Unit] = for {
+            updatedState <- state.updateAndGet(
+              isStarted.modify(!_)
+            )
+            _ <- updatedState.executorStartedListeners.traverse(_.executorStarted(updatedState.isStarted))
+          } yield ()
 
+        override def registerExecutorListener(listener: ExecutorStartedListener[F]): F[Unit] =
+          state.update(
+            executorStartedListeners.modify(listener :: _)
+          )
       })
     } yield result
   }
