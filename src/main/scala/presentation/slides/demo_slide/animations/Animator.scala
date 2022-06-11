@@ -5,7 +5,7 @@ import cats.effect.implicits._
 import cats.implicits._
 import cats.Monad
 import cats.effect.{Fiber, Ref, Temporal}
-import presentation.demo.{CircuitBreakerState, CircuitBreakerStateListener, OutcomeListener, SourceOfMayhem, Statistics, StatisticsInfo}
+import presentation.demo.{CircuitBreakerState, CircuitBreakerStateListener, OutcomeListener, SourceOfMayhem, Statistics}
 import presentation.slides.demo_slide.{ControlPanel, DemoProgramExecutor, ExecutorStartedListener}
 import presentation.tools.NConsole
 import presentation.demo.CircuitBreakerState.CircuitBreakerState
@@ -83,11 +83,11 @@ object Animator {
 
           def executorStarted(programStarted: Boolean): F[Unit] = for {
             animatorState <- state.get
-            _ <- if (!animatorState.isStarted && programStarted && animatorState.currentAnimationState != NOT_STARTED) {
+            _ <- if (programStarted && animatorState.currentAnimationState != NOT_STARTED) {
               queue.offer(AnimationEvent(animatorState.currentAnimationState))
-            } else if (!animatorState.isStarted && programStarted && !animatorState.isFailing) {
+            } else if (programStarted && !animatorState.isFailing) {
               queue.offer(AnimationEvent(CLOSED_SUCCEED))
-            } else if (!animatorState.isStarted && programStarted && animatorState.isFailing) {
+            } else if (programStarted && animatorState.isFailing) {
               queue.offer(AnimationEvent(CLOSED_FAILING))
             } else {
               Monad[F].unit
