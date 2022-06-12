@@ -1,7 +1,5 @@
 package com.github.morotsman
-package presentation.slides
-
-import presentation.tools.{Input, NConsole, Slide}
+package presentation.tools
 
 import cats.implicits._
 import cats.Monad
@@ -70,4 +68,3 @@ case class Bye[F[_] : NConsole : Temporal]() extends Slide[F] {
   override def userInput(input: Input): F[Unit] = Monad[F].unit
 
 }
-

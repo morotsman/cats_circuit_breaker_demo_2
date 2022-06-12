@@ -5,7 +5,6 @@ import cats._
 import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
-import presentation.slides.Bye
 
 import scala.concurrent.duration.DurationInt
 
