@@ -56,7 +56,7 @@ case class Bye[F[_] : NConsole : Temporal]() extends Slide[F] {
   }
 
   private def distortTheText(distortionRate: Double, text: String): String = {
-    val number = (text.size * distortionRate).toInt
+    val number = (text.length * distortionRate).toInt
     val numbers = Array.fill(number)(Random.nextInt(text.length))
     text.zipWithIndex.map { case (c, index) => if (numbers.contains(index) && c != '\n') {
       ' '
