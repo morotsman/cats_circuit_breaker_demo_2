@@ -1,13 +1,9 @@
 package com.github.morotsman
 package presentation.slides.cause
 
-import presentation.tools.{NConsole, SimpleSlide}
-
-import cats.effect.Sync
-
-case class Cause[F[_]: NConsole : Sync]() extends SimpleSlide[F] {
+object Cause {
   val content =
-    Sync[F].pure("""
+    """
       |
       |
       |
@@ -38,6 +34,6 @@ case class Cause[F[_]: NConsole : Sync]() extends SimpleSlide[F] {
       |
       |
       |
-      |""".stripMargin)
+      |""".stripMargin
 
 }

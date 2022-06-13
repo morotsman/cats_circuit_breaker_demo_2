@@ -1,12 +1,9 @@
 package com.github.morotsman
 package presentation.slides
 
-import cats.effect.Sync
-import presentation.tools.{NConsole, SimpleSlide}
-
-case class Start[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
+object Start {
   val content =
-    Sync[F].pure("""
+    """
       |
       |
       |
@@ -26,6 +23,6 @@ case class Start[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
       |(_______/\_______/|/   \__/(_______/(_______)\_______/   )_(     |/ \___/ |/   \__/(_______/|/     \||_/    \/(_______/|/   \__/
       |
       |
-      |""".stripMargin)
+      |""".stripMargin
 }
 

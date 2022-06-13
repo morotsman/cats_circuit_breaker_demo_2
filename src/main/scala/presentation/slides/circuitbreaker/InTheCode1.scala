@@ -1,13 +1,9 @@
 package com.github.morotsman
 package presentation.slides.circuitbreaker
 
-import presentation.tools.{Input, NConsole, SimpleSlide, Slide}
-
-import cats.effect.Sync
-
-case class InTheCode1[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
+object InTheCode1 {
   val content =
-    Sync[F].pure("""
+    """
       |
       |
       |  ___        _   _                     _
@@ -46,6 +42,6 @@ case class InTheCode1[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
       |}
       |
       |
-      |""".stripMargin)
+      |""".stripMargin
 
 }

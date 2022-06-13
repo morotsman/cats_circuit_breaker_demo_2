@@ -5,9 +5,9 @@ import presentation.tools.{NConsole, SimpleSlide}
 
 import cats.effect.Sync
 
-case class TimeoutDoBetter2[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
+object TimeoutDoBetter2 {
   val content =
-    Sync[F].pure("""
+    """
       |
       |
       |                 ___                             _       _         _   _          ___
@@ -27,6 +27,6 @@ case class TimeoutDoBetter2[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
       |
       |
       |
-      |""".stripMargin)
+      |""".stripMargin
 
 }

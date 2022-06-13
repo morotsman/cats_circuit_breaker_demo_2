@@ -1,13 +1,9 @@
 package com.github.morotsman
 package presentation.slides.timeout
 
-import presentation.tools.{Input, NConsole, SimpleSlide, Slide}
-
-import cats.effect.Sync
-
-case class Timeout1[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
+object Timeout1 {
   val content =
-    Sync[F].pure(raw"""
+    """
          |
          |
          |                                                                      _      _    _ _             _   _                    _
@@ -49,6 +45,6 @@ case class Timeout1[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
          | | |                                           | |                         | |                                           | |
          | | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |                         | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |
          | |_|___|___|___|___|___|___|___|___|___|___|___|_|                         |_|___|___|___|___|___|___|___|___|___|___|___|_|
-         |""".stripMargin)
+         |""".stripMargin
 
 }

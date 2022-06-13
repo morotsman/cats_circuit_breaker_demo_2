@@ -1,14 +1,10 @@
 package com.github.morotsman
 package presentation.slides.cascadingfailure
 
-import presentation.tools.{NConsole, SimpleSlide}
-
-import cats.effect.Sync
-
-case class CascadingFailure3[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
+object CascadingFailure3 {
 
   val content =
-    Sync[F].pure("""
+    """
       |
       |
       |                                                                    ___                     _ _              __      _ _
@@ -50,6 +46,6 @@ case class CascadingFailure3[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
       | | |                                           | |                         | |                                           | |
       | | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |                         | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |
       | |_|___|___|___|___|___|___|___|___|___|___|___|_|                         |_|___|___|___|___|___|___|___|___|___|___|___|_|
-      |""".stripMargin)
+      |""".stripMargin
 
 }
