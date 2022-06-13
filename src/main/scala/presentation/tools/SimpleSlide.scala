@@ -10,5 +10,7 @@ abstract class SimpleSlide[F[_] : Sync : NConsole]() extends Slide[F] {
     NConsole[F].writeStringCenterAligned(content)
   }
 
+  override def stopShow(): F[Unit] = Sync[F].unit
+
   override def userInput(input: Input): F[Unit] = Sync[F].unit
 }

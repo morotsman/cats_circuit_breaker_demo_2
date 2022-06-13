@@ -67,4 +67,5 @@ case class Bye[F[_] : NConsole : Temporal]() extends Slide[F] {
 
   override def userInput(input: Input): F[Unit] = Monad[F].unit
 
+  override def stopShow(): F[Unit] = Monad[F].unit
 }

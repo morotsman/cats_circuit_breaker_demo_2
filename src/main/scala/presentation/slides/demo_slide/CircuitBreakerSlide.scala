@@ -5,7 +5,7 @@ import presentation.tools.{Input, Key, NConsole, Slide, SpecialKey}
 
 import cats.implicits._
 import cats.effect.implicits._
-import cats.effect.{Ref, Temporal}
+import cats.effect.{Ref, Sync, Temporal}
 import presentation.demo.{Listeners, MayhemState, SourceOfMayhem, Statistics, StatisticsState}
 import presentation.slides.demo_slide.animations.{Animator, AnimatorState}
 
@@ -33,12 +33,11 @@ object CircuitBreakerSlide {
           animator.animate()
         }
 
-      override def userInput(input: Input): F[Unit] = {
-        input match {
-          case Key(k) if k == SpecialKey.Right || k == SpecialKey.Left || k == SpecialKey.Esc => animator.stop()
-          case _ => controlPanel.userInput(input)
-        }
-      }
+      override def stopShow(): F[Unit] =
+        animator.stop()
+
+      override def userInput(input: Input): F[Unit] =
+        controlPanel.userInput(input)
     }
   } yield slide
 

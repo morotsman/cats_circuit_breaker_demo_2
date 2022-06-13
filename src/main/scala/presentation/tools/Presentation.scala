@@ -25,11 +25,11 @@ object Presentation {
         slides.head.startShow().start >> Monad[F].tailRecM(0) { currentSlideIndex =>
           for {
             input <- NConsole[F].read()
-            _ <- slides(currentSlideIndex).userInput(input)
             slide <- input match {
               case Key(k) if k == SpecialKey.Left =>
                 if (currentSlideIndex > 0) {
                   for {
+                    _ <- slides(currentSlideIndex).stopShow()
                     _ <- NConsole[F].clear()
                     index = currentSlideIndex - 1
                     _ <- slides(index).startShow().start
@@ -40,6 +40,7 @@ object Presentation {
               case Key(k) if k == SpecialKey.Right =>
                 if (currentSlideIndex < slides.length - 1) {
                   for {
+                    _ <- slides(currentSlideIndex).stopShow()
                     _ <- NConsole[F].clear()
                     index = currentSlideIndex + 1
                     _ <- slides(index).startShow().start
@@ -48,12 +49,14 @@ object Presentation {
                   Monad[F].pure(Either.left(currentSlideIndex))
                 }
               case Key(k) if k == SpecialKey.Esc =>
-                NConsole[F].clear() >>
+                slides(currentSlideIndex).stopShow() >>
+                  NConsole[F].clear() >>
                   Bye[F].startShow() >>
                   Temporal[F].sleep(500.milli) >>
                   NConsole[F].clear().as(Either.right(currentSlideIndex))
               case _ =>
-                Monad[F].pure(Either.left(currentSlideIndex))
+                slides(currentSlideIndex).userInput(input) >>
+                  Monad[F].pure(Either.left(currentSlideIndex))
             }
           } yield slide
         }
