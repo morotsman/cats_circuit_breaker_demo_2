@@ -1,12 +1,12 @@
 package com.github.morotsman
 package presentation.slides.timeout
 
-import presentation.tools.{Input, NConsole, Slide}
+import presentation.tools.{NConsole, SimpleSlide}
 
 import cats.effect.Sync
 
-case class TimeoutDoBetter2[F[_] : Sync : NConsole]() extends Slide[F] {
-  val text =
+case class TimeoutDoBetter2[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
+  val content =
     """
       |
       |
@@ -29,7 +29,4 @@ case class TimeoutDoBetter2[F[_] : Sync : NConsole]() extends Slide[F] {
       |
       |""".stripMargin
 
-  override def show(): F[Unit] = NConsole[F].writeStringCenterAligned(text)
-
-  override def userInput(input: Input): F[Unit] = Sync[F].unit
 }

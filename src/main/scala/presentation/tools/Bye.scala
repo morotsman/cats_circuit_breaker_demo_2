@@ -9,7 +9,7 @@ import scala.concurrent.duration.DurationInt
 import scala.util.Random
 
 case class Bye[F[_] : NConsole : Temporal]() extends Slide[F] {
-  override def show(): F[Unit] = {
+  override def startShow(): F[Unit] = {
     val text =
       """
         |

@@ -1,13 +1,13 @@
 package com.github.morotsman
 package presentation.slides.cascadingfailure
 
-import presentation.tools.{Input, NConsole, Slide}
+import presentation.tools.{Input, NConsole, SimpleSlide, Slide}
 
 import cats.effect.Sync
 
-case class CascadingFailure2[F[_] : Sync : NConsole]() extends Slide[F] {
+case class CascadingFailure2[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
 
-  private val slow2 =
+  val content =
     """
       |
       |
@@ -52,7 +52,4 @@ case class CascadingFailure2[F[_] : Sync : NConsole]() extends Slide[F] {
       | |_|___|___|___|___|___|___|___|___|___|___|___|_|                         |_|___|___|___|___|___|___|___|___|___|___|___|_|
       |""".stripMargin
 
-  override def show(): F[Unit] = NConsole[F].writeStringCenterAligned(slow2)
-
-  override def userInput(input: Input): F[Unit] = Sync[F].unit
 }

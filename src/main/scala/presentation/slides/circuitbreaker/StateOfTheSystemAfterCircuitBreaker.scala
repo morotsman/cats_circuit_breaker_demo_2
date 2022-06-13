@@ -1,12 +1,12 @@
 package com.github.morotsman
 package presentation.slides.circuitbreaker
 
-import presentation.tools.{Input, NConsole, Slide}
+import presentation.tools.{NConsole, SimpleSlide}
 
 import cats.effect.Sync
 
-case class StateOfTheSystemAfterCircuitBreaker[F[_] : Sync : NConsole]() extends Slide[F] {
-  val text =
+case class StateOfTheSystemAfterCircuitBreaker[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
+  val content =
     """
       |
       |
@@ -53,7 +53,4 @@ case class StateOfTheSystemAfterCircuitBreaker[F[_] : Sync : NConsole]() extends
       |
       |""".stripMargin
 
-  override def show(): F[Unit] = NConsole[F].writeStringCenterAligned(text)
-
-  override def userInput(input: Input): F[Unit] = Sync[F].unit
 }

@@ -28,7 +28,7 @@ object CircuitBreakerSlide {
     )
 
     slide = new Slide[F] {
-      override def show(): F[Unit] =
+      override def startShow(): F[Unit] =
         (demoProgramExecutor.execute(), statistics.aggregate()).parTupled.background.use { _ =>
           animator.animate()
         }

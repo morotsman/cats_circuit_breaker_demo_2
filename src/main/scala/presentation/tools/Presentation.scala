@@ -22,7 +22,7 @@ object Presentation {
       } yield ()
 
       def executionLoop(): F[Int] =
-        slides.head.show().start >> Monad[F].tailRecM(0) { currentSlideIndex =>
+        slides.head.startShow().start >> Monad[F].tailRecM(0) { currentSlideIndex =>
           for {
             input <- NConsole[F].read()
             _ <- slides(currentSlideIndex).userInput(input)
@@ -32,7 +32,7 @@ object Presentation {
                   for {
                     _ <- NConsole[F].clear()
                     index = currentSlideIndex - 1
-                    _ <- slides(index).show().start
+                    _ <- slides(index).startShow().start
                   } yield Either.left(index)
                 } else {
                   Monad[F].pure(Either.left(currentSlideIndex))
@@ -42,14 +42,14 @@ object Presentation {
                   for {
                     _ <- NConsole[F].clear()
                     index = currentSlideIndex + 1
-                    _ <- slides(index).show().start
+                    _ <- slides(index).startShow().start
                   } yield Either.left(index)
                 } else {
                   Monad[F].pure(Either.left(currentSlideIndex))
                 }
               case Key(k) if k == SpecialKey.Esc =>
                 NConsole[F].clear() >>
-                  Bye[F].show() >>
+                  Bye[F].startShow() >>
                   Temporal[F].sleep(500.milli) >>
                   NConsole[F].clear().as(Either.right(currentSlideIndex))
               case _ =>
