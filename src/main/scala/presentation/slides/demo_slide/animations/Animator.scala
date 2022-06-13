@@ -12,6 +12,7 @@ import presentation.demo.CircuitBreakerState.CircuitBreakerState
 import presentation.slides.demo_slide.animations.AnimationState.{AnimationState, _}
 
 import cats.effect.std.Queue
+import com.github.morotsman.presentation.slides.demo_slide.animations.Static.staticAnimation
 import monocle.Lens
 import monocle.macros.Lenses
 
@@ -36,6 +37,8 @@ object AnimatorState {
 }
 
 trait Animator[F[_]] extends CircuitBreakerStateListener[F] with ExecutorStartedListener[F] with OutcomeListener[F] {
+  def snapshot(): F[String]
+
   def animate(): F[Unit]
 
   def stop(): F[Unit]
@@ -221,6 +224,21 @@ object Animator {
             loop(frame = 0, frameDelay = delay)
           }
 
+          override def snapshot(): F[String] = {
+            val animation = staticAnimation(0)
+            for {
+              demoProgramExecutorState <- demoProgramExecutor.getState
+              statisticsInfo <- statistics.getStatisticsInfo
+              controlPanel <- controlPanel.getState()
+              mayhemState <- sourceOfMayhem.mayhemState()
+            } yield animation(
+              statisticsInfo,
+              controlPanel.input,
+              mayhemState,
+              demoProgramExecutorState.circuitBreakerConfiguration,
+              demoProgramExecutorState.isStarted
+            )
+          }
         }
       _ <- demoProgramExecutor.registerExecutorListener(animator)
       _ <- statistics.registerCircuitBreakerStateListener(animator)

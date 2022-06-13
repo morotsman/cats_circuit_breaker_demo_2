@@ -8,7 +8,7 @@ import com.github.morotsman.presentation.util.Colors.{ANSI_RED, ANSI_RESET}
 
 case class CascadingFailure1[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
   val content =
-    raw"""
+    Sync[F].pure(raw"""
       |
       |
       |                                                                    ___                     _ _              __      _ _
@@ -50,6 +50,6 @@ case class CascadingFailure1[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
       | | |                                           | |                         | |                                           | |
       | | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |                         | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |
       | |_|___|___|___|___|___|___|___|___|___|___|___|_|                         |_|___|___|___|___|___|___|___|___|___|___|___|_|
-      |""".stripMargin
+      |""".stripMargin)
 
 }

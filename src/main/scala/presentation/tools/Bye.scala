@@ -3,42 +3,44 @@ package presentation.tools
 
 import cats.implicits._
 import cats.Monad
+import cats.effect.Sync
 import cats.effect.kernel.Temporal
 
 import scala.concurrent.duration.DurationInt
 import scala.util.Random
 
 case class Bye[F[_] : NConsole : Temporal]() extends Slide[F] {
+  val text =
+    """
+      |
+      |
+      |
+      |
+      |
+      |
+      |
+      |                                                       /$$$$$$   /$$$$$$   /$$$$$$  /$$$$$$$  /$$$$$$$  /$$     /$$ /$$$$$$$$ /$$
+      |                                                      /$$__  $$ /$$__  $$ /$$__  $$| $$__  $$| $$__  $$|  $$   /$$/| $$_____/| $$
+      |                                                     | $$  \__/| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$ \  $$ /$$/ | $$      | $$
+      |                                                     | $$ /$$$$| $$  | $$| $$  | $$| $$  | $$| $$$$$$$   \  $$$$/  | $$$$$   | $$
+      |                                                     | $$|_  $$| $$  | $$| $$  | $$| $$  | $$| $$__  $$   \  $$/   | $$__/   |__/
+      |                                                     | $$  \ $$| $$  | $$| $$  | $$| $$  | $$| $$  \ $$    | $$    | $$
+      |                                                     |  $$$$$$/|  $$$$$$/|  $$$$$$/| $$$$$$$/| $$$$$$$/    | $$    | $$$$$$$$ /$$
+      |                                                      \______/  \______/  \______/ |_______/ |_______/     |__/    |________/|__/
+      |
+      |
+      |
+      |
+      |
+      |
+      |
+      |
+      |
+      |
+      |
+      |""".stripMargin
+
   override def startShow(): F[Unit] = {
-    val text =
-      """
-        |
-        |
-        |
-        |
-        |
-        |
-        |
-        |                                                       /$$$$$$   /$$$$$$   /$$$$$$  /$$$$$$$  /$$$$$$$  /$$     /$$ /$$$$$$$$ /$$
-        |                                                      /$$__  $$ /$$__  $$ /$$__  $$| $$__  $$| $$__  $$|  $$   /$$/| $$_____/| $$
-        |                                                     | $$  \__/| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$ \  $$ /$$/ | $$      | $$
-        |                                                     | $$ /$$$$| $$  | $$| $$  | $$| $$  | $$| $$$$$$$   \  $$$$/  | $$$$$   | $$
-        |                                                     | $$|_  $$| $$  | $$| $$  | $$| $$  | $$| $$__  $$   \  $$/   | $$__/   |__/
-        |                                                     | $$  \ $$| $$  | $$| $$  | $$| $$  | $$| $$  \ $$    | $$    | $$
-        |                                                     |  $$$$$$/|  $$$$$$/|  $$$$$$/| $$$$$$$/| $$$$$$$/    | $$    | $$$$$$$$ /$$
-        |                                                      \______/  \______/  \______/ |_______/ |_______/     |__/    |________/|__/
-        |
-        |
-        |
-        |
-        |
-        |
-        |
-        |
-        |
-        |
-        |
-        |""".stripMargin
 
     def distort(distortionRate: Double, text: String): F[Unit] = {
       if (distortionRate > 2) {
@@ -68,4 +70,6 @@ case class Bye[F[_] : NConsole : Temporal]() extends Slide[F] {
   override def userInput(input: Input): F[Unit] = Monad[F].unit
 
   override def stopShow(): F[Unit] = Monad[F].unit
+
+  override def content: F[String] = Temporal[F].pure(text)
 }

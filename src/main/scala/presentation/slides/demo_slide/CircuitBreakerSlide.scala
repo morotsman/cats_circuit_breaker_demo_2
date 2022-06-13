@@ -38,6 +38,8 @@ object CircuitBreakerSlide {
 
       override def userInput(input: Input): F[Unit] =
         controlPanel.userInput(input)
+
+      override def content: F[String] = animator.snapshot()
     }
   } yield slide
 

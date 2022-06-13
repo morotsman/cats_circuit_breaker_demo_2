@@ -7,7 +7,7 @@ import cats.effect.Sync
 
 case class Timeout1[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
   val content =
-    raw"""
+    Sync[F].pure(raw"""
          |
          |
          |                                                                      _      _    _ _             _   _                    _
@@ -49,6 +49,6 @@ case class Timeout1[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
          | | |                                           | |                         | |                                           | |
          | | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |                         | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |
          | |_|___|___|___|___|___|___|___|___|___|___|___|_|                         |_|___|___|___|___|___|___|___|___|___|___|___|_|
-         |""".stripMargin
+         |""".stripMargin)
 
 }

@@ -7,7 +7,7 @@ import cats.effect.Sync
 
 case class InContrast1[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
   val content =
-    raw"""
+    Sync[F].pure(raw"""
          |
          |
          |  ___                   _               _     _         _   _                                   _            _
@@ -48,6 +48,6 @@ case class InContrast1[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
          | | |                                           | |                         | |                                           | |
          | | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |                         | |___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___| |
          | |_|___|___|___|___|___|___|___|___|___|___|___|_|                         |_|___|___|___|___|___|___|___|___|___|___|___|_|
-         |""".stripMargin
+         |""".stripMargin)
 
 }

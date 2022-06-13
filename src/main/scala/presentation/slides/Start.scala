@@ -5,8 +5,8 @@ import cats.effect.Sync
 import presentation.tools.{NConsole, SimpleSlide}
 
 case class Start[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
-  override def content: String =
-    """
+  override def content: F[String] =
+    Sync[F].pure("""
       |
       |
       |
@@ -26,6 +26,6 @@ case class Start[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
       |(_______/\_______/|/   \__/(_______/(_______)\_______/   )_(     |/ \___/ |/   \__/(_______/|/     \||_/    \/(_______/|/   \__/
       |
       |
-      |""".stripMargin
+      |""".stripMargin)
 }
 

@@ -7,7 +7,7 @@ import cats.effect.Sync
 
 case class DistributedSystem2[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
   val content =
-    """
+    Sync[F].pure("""
       |
       |
       |                                                                 ___      _        _   _ _ _                                 _      __
@@ -52,6 +52,6 @@ case class DistributedSystem2[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
       |
       |
       |
-      |""".stripMargin
+      |""".stripMargin)
 
 }

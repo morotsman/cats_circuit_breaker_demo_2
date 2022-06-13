@@ -7,7 +7,7 @@ import cats.effect.Sync
 
 case class References[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
   val content =
-    """
+    Sync[F].pure("""
       |
       |
       |                         ___      __
@@ -23,6 +23,6 @@ case class References[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
       |  Building Microservices: Designing Fine-Grained Systems (O'Reilly) by Sam Newman
       |
       |  Article by Martin Fowler: https://martinfowler.com/bliki/CircuitBreaker.html
-      |""".stripMargin
+      |""".stripMargin)
 
 }

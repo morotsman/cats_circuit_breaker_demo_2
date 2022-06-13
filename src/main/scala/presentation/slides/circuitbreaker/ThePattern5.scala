@@ -7,7 +7,7 @@ import cats.effect.Sync
 
 case class ThePattern5[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
   val content =
-    """
+    Sync[F].pure("""
       |
       |                                                       ___ _        _                       _    _
       |                                                      / __| |_ __ _| |_ ___   _ __  __ _ __| |_ (_)_ _  ___
@@ -49,6 +49,6 @@ case class ThePattern5[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
       |                                                                                      | |  |_||_/_/ \_\____|_|    \___/|_| |___|_|\_|   | |
       |                                                                                      |_|_ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ ___ _|_|
       |                                                                                      |___|___|___|___|___|___|___|___|___|___|___|___|___|
-      |""".stripMargin
+      |""".stripMargin)
 
 }

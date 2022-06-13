@@ -7,7 +7,7 @@ import cats.effect.Sync
 
 case class InTheCode1[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
   val content =
-    """
+    Sync[F].pure("""
       |
       |
       |  ___        _   _                     _
@@ -46,6 +46,6 @@ case class InTheCode1[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
       |}
       |
       |
-      |""".stripMargin
+      |""".stripMargin)
 
 }

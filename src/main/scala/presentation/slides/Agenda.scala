@@ -6,7 +6,7 @@ import presentation.tools.{NConsole, SimpleSlide}
 
 case class Agenda[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
   val content =
-    """
+    Sync[F].pure("""
       |                               _
       |     /\                       | |
       |    /  \   __ _  ___ _ __   __| | __ _
@@ -37,6 +37,6 @@ case class Agenda[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
       |              \_____\___/|_| |_|\___|_|\__,_|___/_|\___/|_| |_|
       |
       |
-      |""".stripMargin
+      |""".stripMargin)
 
 }
