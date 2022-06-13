@@ -25,38 +25,43 @@ object Presentation {
         slides.head.startShow().start >> Monad[F].tailRecM(0) { currentSlideIndex =>
           for {
             input <- NConsole[F].read()
-            result <- input match {
-              case Key(k) if k == SpecialKey.Left =>
-                if (currentSlideIndex > 0) {
-                  for {
-                    _ <- slides(currentSlideIndex).stopShow()
-                    _ <- NConsole[F].clear()
-                    index = currentSlideIndex - 1
-                    _ <- slides(index).startShow().start
-                  } yield Either.left(index)
-                } else {
-                  Monad[F].pure(Either.left(currentSlideIndex))
-                }
-              case Key(k) if k == SpecialKey.Right =>
-                if (currentSlideIndex < slides.length - 1) {
-                  for {
-                    _ <- slides(currentSlideIndex).stopShow()
-                    _ <- NConsole[F].clear()
-                    index = currentSlideIndex + 1
-                    _ <- slides(index).startShow().start
-                  } yield Either.left(index)
-                } else {
-                  Monad[F].pure(Either.left(currentSlideIndex))
-                }
-              case Key(k) if k == SpecialKey.Esc =>
-                slides(currentSlideIndex).stopShow() >>
-                  NConsole[F].clear() >>
-                  Bye[F].startShow() >>
-                  Temporal[F].sleep(500.milli) >>
-                  NConsole[F].clear().as(Either.right(currentSlideIndex))
-              case _ =>
-                slides(currentSlideIndex).userInput(input) >>
-                  Monad[F].pure(Either.left(currentSlideIndex))
+            result <- {
+              val currentSlide = slides(currentSlideIndex)
+              input match {
+                case Key(k) if k == SpecialKey.Left =>
+                  if (currentSlideIndex > 0) {
+                    for {
+                      _ <- currentSlide.stopShow()
+                      _ <- NConsole[F].clear()
+                      index = currentSlideIndex - 1
+                      nextSlide = slides(index)
+                      _ <- nextSlide.startShow().start
+                    } yield Either.left(index)
+                  } else {
+                    Monad[F].pure(Either.left(currentSlideIndex))
+                  }
+                case Key(k) if k == SpecialKey.Right =>
+                  if (currentSlideIndex < slides.length - 1) {
+                    for {
+                      _ <- currentSlide.stopShow()
+                      _ <- NConsole[F].clear()
+                      index = currentSlideIndex + 1
+                      nextSlide = slides(index)
+                      _ <- nextSlide.startShow().start
+                    } yield Either.left(index)
+                  } else {
+                    Monad[F].pure(Either.left(currentSlideIndex))
+                  }
+                case Key(k) if k == SpecialKey.Esc =>
+                  currentSlide.stopShow() >>
+                    NConsole[F].clear() >>
+                    Bye[F].startShow() >>
+                    Temporal[F].sleep(500.milli) >>
+                    NConsole[F].clear().as(Either.right(currentSlideIndex))
+                case _ =>
+                  currentSlide.userInput(input) >>
+                    Monad[F].pure(Either.left(currentSlideIndex))
+              }
             }
           } yield result
         }
