@@ -5,7 +5,7 @@ import cats.effect.Sync
 import presentation.tools.{NConsole, SimpleSlide}
 
 case class Start[F[_] : Sync : NConsole]() extends SimpleSlide[F] {
-  override def content: F[String] =
+  val content =
     Sync[F].pure("""
       |
       |
