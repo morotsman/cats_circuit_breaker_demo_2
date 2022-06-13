@@ -25,7 +25,7 @@ object Presentation {
         slides.head.startShow().start >> Monad[F].tailRecM(0) { currentSlideIndex =>
           for {
             input <- NConsole[F].read()
-            slide <- input match {
+            result <- input match {
               case Key(k) if k == SpecialKey.Left =>
                 if (currentSlideIndex > 0) {
                   for {
@@ -58,7 +58,7 @@ object Presentation {
                 slides(currentSlideIndex).userInput(input) >>
                   Monad[F].pure(Either.left(currentSlideIndex))
             }
-          } yield slide
+          } yield result
         }
 
     }
