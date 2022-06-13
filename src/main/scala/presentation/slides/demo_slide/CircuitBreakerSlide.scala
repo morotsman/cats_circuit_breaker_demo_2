@@ -1,11 +1,11 @@
 package com.github.morotsman
 package presentation.slides.demo_slide
 
-import presentation.tools.{Input, Key, NConsole, Slide, SpecialKey}
+import presentation.tools.{Input, NConsole, Slide}
 
 import cats.implicits._
 import cats.effect.implicits._
-import cats.effect.{Ref, Sync, Temporal}
+import cats.effect.{Ref, Temporal}
 import presentation.demo.{Listeners, MayhemState, SourceOfMayhem, Statistics, StatisticsState}
 import presentation.slides.demo_slide.animations.{Animator, AnimatorState}
 
