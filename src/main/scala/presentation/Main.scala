@@ -15,7 +15,8 @@ import presentation.slides.timeout.{DistributedSystem2, Timeout1, Timeout2, Time
 object Main extends IOApp.Simple {
 
   override def run(): IO[Unit] = for {
-    slides <- List(
+    circuitBreakerSlide <- CircuitBreakerSlide.make[IO]()
+    presentation <- Presentation.make[IO](List(
       SimpleSlide[IO](Start.content),
       SimpleSlide[IO](Agenda.content),
       SimpleSlide[IO](DistributedSystem.content),
@@ -41,11 +42,10 @@ object Main extends IOApp.Simple {
       SimpleSlide[IO](InTheCode2.content),
       SimpleSlide[IO](DemoTime.content),
       SimpleSlide[IO](ThePattern4.content),
-      CircuitBreakerSlide.make[IO](),
+      circuitBreakerSlide,
       SimpleSlide[IO](Conclusion.content),
       SimpleSlide[IO](References.content)
-    ).sequence
-    presentation <- Presentation.make[IO](slides)
+    ))
     _ <- presentation.start()
   } yield ()
 
