@@ -23,7 +23,6 @@ object Main extends IOApp.Simple {
       .addSlide(Start().toSlide)
       .addTransitions(right = ReplaceTransition[IO](' '))
       .addSlide(Agenda().toSlide)
-      .addTransitions(right = TextTransistion[IO]("hepp2"))
       .addSlide(DistributedSystem().toSlide)
       .addSlide(CascadingFailure1().toSlide)
       .addSlide(CascadingFailure2().toSlide)
