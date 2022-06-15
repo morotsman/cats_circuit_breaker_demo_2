@@ -36,11 +36,13 @@ object Presentation {
                       _ <- NConsole[F].clear()
                       index = currentSlideIndex + 1
                       nextSat = sat(index)
-                      _ <- currentSat.right
-                        .fold(Nothing().transition(currentSat.slide, nextSat.slide))(right => right.transition(currentSat.slide, nextSat.slide))
+                      _ <- currentSat.right.fold(Nothing().transition(currentSat.slide, nextSat.slide)) { right =>
+                        right.transition(currentSat.slide, nextSat.slide)
+                      }
                       _ <- NConsole[F].clear()
-                      _ <- nextSat.left
-                        .fold(Nothing().transition(currentSat.slide, nextSat.slide))(right => right.transition(currentSat.slide, nextSat.slide))
+                      _ <- nextSat.left.fold(Nothing().transition(currentSat.slide, nextSat.slide)) { right =>
+                        right.transition(currentSat.slide, nextSat.slide)
+                      }
                       _ <- NConsole[F].clear()
                       _ <- nextSat.slide.startShow().start
                     } yield Either.left(index)
@@ -54,11 +56,13 @@ object Presentation {
                       _ <- NConsole[F].clear()
                       index = currentSlideIndex - 1
                       nextSat = sat(index)
-                      _ <- currentSat.left
-                        .fold(Nothing().transition(currentSat.slide, nextSat.slide))(right => right.transition(currentSat.slide, nextSat.slide))
+                      _ <- currentSat.left.fold(Nothing().transition(currentSat.slide, nextSat.slide)) { right =>
+                        right.transition(currentSat.slide, nextSat.slide)
+                      }
                       _ <- NConsole[F].clear()
-                      _ <- nextSat.right
-                        .fold(Nothing().transition(currentSat.slide, nextSat.slide))(right => right.transition(currentSat.slide, nextSat.slide))
+                      _ <- nextSat.right.fold(Nothing().transition(currentSat.slide, nextSat.slide)) { right =>
+                        right.transition(currentSat.slide, nextSat.slide)
+                      }
                       _ <- NConsole[F].clear()
                       _ <- nextSat.slide.startShow().start
                     } yield Either.left(index)
