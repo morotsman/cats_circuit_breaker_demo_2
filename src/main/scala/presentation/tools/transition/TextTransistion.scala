@@ -8,7 +8,7 @@ import cats.effect.kernel.Temporal
 
 import scala.concurrent.duration.DurationInt
 
-object TestTransistion {
+object TextTransistion {
   def apply[F[_]: Temporal: NConsole](toWrite: String): Transition[F] = new Transition[F] {
     override def transition(from: Slide[F], to: Slide[F]): F[Unit] =
       NConsole[F].writeStringCenterAligned(toWrite) >> Temporal[F].sleep(5.seconds)

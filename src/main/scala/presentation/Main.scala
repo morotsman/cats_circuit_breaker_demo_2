@@ -13,7 +13,7 @@ import presentation.slides.circuitbreaker.{CircuitBreakerDoBetter1, CircuitBreak
 import presentation.slides.timeout.{DistributedSystem2, Timeout1, Timeout2, TimeoutDoBetter1, TimeoutDoBetter2}
 import presentation.tools.SimpleSlide._
 
-import com.github.morotsman.presentation.tools.transition.TestTransistion
+import com.github.morotsman.presentation.tools.transition.{ReplaceTransition, TextTransistion}
 
 object Main extends IOApp.Simple {
 
@@ -21,9 +21,9 @@ object Main extends IOApp.Simple {
     circuitBreakerSlide <- CircuitBreakerSlide.make[IO]()
     presentation <- PresentationBuilder[IO]()
       .addSlide(Start().toSlide)
-      .addTransitions(right = TestTransistion[IO]("hepp1"))
+      .addTransitions(right = ReplaceTransition[IO](' '))
       .addSlide(Agenda().toSlide)
-      .addTransitions(right = TestTransistion[IO]("hepp2"))
+      .addTransitions(right = TextTransistion[IO]("hepp2"))
       .addSlide(DistributedSystem().toSlide)
       .addSlide(CascadingFailure1().toSlide)
       .addSlide(CascadingFailure2().toSlide)
