@@ -2,7 +2,7 @@ package com.github.morotsman
 package presentation.slides.cascadingfailure
 
 object CascadingFailure1 {
-  val content =
+  def apply(): String =
     """
       |
       |

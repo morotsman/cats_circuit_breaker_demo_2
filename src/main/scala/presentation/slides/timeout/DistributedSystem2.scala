@@ -2,7 +2,7 @@ package com.github.morotsman
 package presentation.slides.timeout
 
 object DistributedSystem2 {
-  val content =
+  def apply(): String =
     """
       |
       |

@@ -2,7 +2,7 @@ package com.github.morotsman
 package presentation.slides.circuitbreaker
 
 object InContrast2 {
-  val content =
+  def apply(): String =
     """
       |
       |

@@ -3,7 +3,7 @@ package presentation.slides.cascadingfailure
 
 object CascadingFailure3 {
 
-  val content =
+  def apply(): String =
     """
       |
       |

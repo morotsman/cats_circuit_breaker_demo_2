@@ -2,7 +2,7 @@ package com.github.morotsman
 package presentation.slides.cause
 
 object Cause {
-  val content =
+  def apply(): String =
     """
       |
       |

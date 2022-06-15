@@ -2,7 +2,7 @@ package com.github.morotsman
 package presentation.slides.timeout
 
 object TimeoutDoBetter1 {
-  val content =
+  def apply(): String =
     """
       |
       |

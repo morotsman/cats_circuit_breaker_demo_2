@@ -1,12 +1,8 @@
 package com.github.morotsman
 package presentation.slides.timeout
 
-import presentation.tools.{NConsole, SimpleSlide}
-
-import cats.effect.Sync
-
 object TimeoutDoBetter2 {
-  val content =
+  def apply(): String =
     """
       |
       |

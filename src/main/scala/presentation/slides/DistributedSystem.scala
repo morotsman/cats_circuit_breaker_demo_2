@@ -3,7 +3,7 @@ package presentation.slides
 
 
 object DistributedSystem {
-  val content =
+  def apply(): String =
     """
       |
       |

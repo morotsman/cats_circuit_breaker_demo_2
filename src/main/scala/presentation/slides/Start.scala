@@ -2,7 +2,7 @@ package com.github.morotsman
 package presentation.slides
 
 object Start {
-  val content =
+  def apply(): String =
     """
       |
       |

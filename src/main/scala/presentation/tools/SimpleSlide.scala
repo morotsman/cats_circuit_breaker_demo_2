@@ -1,7 +1,7 @@
 package com.github.morotsman
 package presentation.tools
 
-import cats.effect.{Ref, Sync}
+import cats.effect.Sync
 import cats.implicits._
 
 case class SimpleSlideState()
@@ -21,4 +21,9 @@ object SimpleSlide {
       override def userInput(input: Input): F[Unit] =
         Sync[F].unit
     }
+
+  implicit class ToSimpleSlide(val s: String) {
+    def toSlide[F[_]: Sync : NConsole]: Slide[F] = SimpleSlide[F](s)
+  }
+
 }

@@ -3,7 +3,7 @@ package presentation.slides
 
 
 object References {
-  val content =
+  def apply(): String =
     """
       |
       |

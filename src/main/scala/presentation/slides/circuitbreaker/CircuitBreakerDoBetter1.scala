@@ -2,7 +2,7 @@ package com.github.morotsman
 package presentation.slides.circuitbreaker
 
 object CircuitBreakerDoBetter1 {
-  val content =
+  def apply(): String =
     """
       |
       |
