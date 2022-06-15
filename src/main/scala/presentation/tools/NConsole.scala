@@ -67,7 +67,7 @@ object NConsole {
           val padding = Array.fill(padFactor)(" ").mkString("")
           val text = splitByNewLine.map { line =>
             if (padFactor >= 0) {
-              padding + line
+              padding + line + padding
             } else ???
           }.mkString("\n")
           println(text)
