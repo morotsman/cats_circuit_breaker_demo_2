@@ -33,12 +33,12 @@ case class PresentationBuilder[F[_] : Temporal : NConsole, State <: BuildState](
     Presentation.make[F](ongoing.fold(sat)(_ :: sat).reverse)
 
   def addTransitions(
-                      left: Option[Transition[F]] = None,
-                      right: Option[Transition[F]] = None
+                      left: Transition[F] = null,
+                      right: Transition[F] = null
                     )(implicit ev: State =:= InProgress): PresentationBuilder[F, Started] = {
     PresentationBuilder[F, Started](
       None,
-      ongoing.fold(sat)(_.copy(left = left, right = right) :: sat)
+      ongoing.fold(sat)(_.copy(left = Option(left), right = Option(right)) :: sat)
     )
   }
 

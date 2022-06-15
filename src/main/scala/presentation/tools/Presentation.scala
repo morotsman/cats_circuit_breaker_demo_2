@@ -22,8 +22,8 @@ object Presentation {
         _ <- executionLoop()
       } yield ()
 
-      def executionLoop(): F[Int] =
-        sat.head.slide.startShow().start >> Monad[F].tailRecM(0) { currentSlideIndex =>
+      def executionLoop(): F[(Int, Fiber[F, Throwable, Unit])] =
+        sat.head.slide.startShow().start >>= (Monad[F].tailRecM(0, _) { case (currentSlideIndex, currentWork) =>
           for {
             input <- NConsole[F].read()
             result <- {
@@ -33,55 +33,64 @@ object Presentation {
                   if (currentSlideIndex < sat.length - 1) {
                     for {
                       _ <- currentSat.slide.stopShow()
+                      _ <- currentWork.cancel
                       _ <- NConsole[F].clear()
                       index = currentSlideIndex + 1
                       nextSat = sat(index)
-                      _ <- currentSat.right.fold(Nothing().transition(currentSat.slide, nextSat.slide)) { right =>
-                        right.transition(currentSat.slide, nextSat.slide)
+                      work <- {
+                        (for {
+                          _ <- currentSat.right.fold(Nothing().transition(currentSat.slide, nextSat.slide)) { right =>
+                            right.transition(currentSat.slide, nextSat.slide)
+                          }
+                          _ <- NConsole[F].clear()
+                          _ <- nextSat.left.fold(Nothing().transition(currentSat.slide, nextSat.slide)) { right =>
+                            right.transition(currentSat.slide, nextSat.slide)
+                          }
+                          _ <- NConsole[F].clear()
+                          _ <- nextSat.slide.startShow().start
+                        } yield ()).start
                       }
-                      _ <- NConsole[F].clear()
-                      _ <- nextSat.left.fold(Nothing().transition(currentSat.slide, nextSat.slide)) { right =>
-                        right.transition(currentSat.slide, nextSat.slide)
-                      }
-                      _ <- NConsole[F].clear()
-                      _ <- nextSat.slide.startShow().start
-                    } yield Either.left(index)
+                    } yield Either.left(index, work)
                   } else {
-                    Monad[F].pure(Either.left(currentSlideIndex))
+                    Monad[F].pure(Either.left(currentSlideIndex, currentWork))
                   }
                 case Key(k) if k == SpecialKey.Left =>
                   if (currentSlideIndex > 0) {
                     for {
                       _ <- currentSat.slide.stopShow()
+                      _ <- currentWork.cancel
                       _ <- NConsole[F].clear()
                       index = currentSlideIndex - 1
                       nextSat = sat(index)
-                      _ <- currentSat.left.fold(Nothing().transition(currentSat.slide, nextSat.slide)) { right =>
-                        right.transition(currentSat.slide, nextSat.slide)
-                      }
-                      _ <- NConsole[F].clear()
-                      _ <- nextSat.right.fold(Nothing().transition(currentSat.slide, nextSat.slide)) { right =>
-                        right.transition(currentSat.slide, nextSat.slide)
-                      }
-                      _ <- NConsole[F].clear()
-                      _ <- nextSat.slide.startShow().start
-                    } yield Either.left(index)
+                      work <- ( for {
+                        _ <- currentSat.left.fold(Nothing().transition(currentSat.slide, nextSat.slide)) { right =>
+                          right.transition(currentSat.slide, nextSat.slide)
+                        }
+                        _ <- NConsole[F].clear()
+                        _ <- nextSat.right.fold(Nothing().transition(currentSat.slide, nextSat.slide)) { right =>
+                          right.transition(currentSat.slide, nextSat.slide)
+                        }
+                        _ <- NConsole[F].clear()
+                        _ <- nextSat.slide.startShow().start
+                      } yield ()).start
+
+                    } yield Either.left(index, work)
                   } else {
-                    Monad[F].pure(Either.left(currentSlideIndex))
+                    Monad[F].pure(Either.left(currentSlideIndex, currentWork))
                   }
                 case Key(k) if k == SpecialKey.Esc =>
                   currentSat.slide.stopShow() >>
                     NConsole[F].clear() >>
                     Bye[F].startShow() >>
                     Temporal[F].sleep(500.milli) >>
-                    NConsole[F].clear().as(Either.right(currentSlideIndex))
+                    NConsole[F].clear().as(Either.right(currentSlideIndex, currentWork))
                 case _ =>
                   currentSat.slide.userInput(input) >>
-                    Monad[F].pure(Either.left(currentSlideIndex))
+                    Monad[F].pure(Either.left(currentSlideIndex, currentWork))
               }
             }
           } yield result
-        }
+        })
 
     }
   )
