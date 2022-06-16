@@ -31,7 +31,7 @@ object MorphTransition {
         from <- NConsole[F].centerAlignText(slide1)
         slide2 <- to.content
         to <- NConsole[F].centerAlignText(slide2)
-        _ <- NConsole[F].writeStringCenterAligned(slide1) >> morph(0.01, from, to)
+        _ <- NConsole[F].writeString(from) >> morph(0.01, from, to)
       } yield ()
 
     }
