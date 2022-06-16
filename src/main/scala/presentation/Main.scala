@@ -13,7 +13,7 @@ import presentation.slides.circuitbreaker.{CircuitBreakerDoBetter1, CircuitBreak
 import presentation.slides.timeout.{DistributedSystem2, Timeout1, Timeout2, TimeoutDoBetter1, TimeoutDoBetter2}
 import presentation.tools.SimpleSlide._
 
-import com.github.morotsman.presentation.tools.transition.{ReplaceTransition, TextTransistion}
+import com.github.morotsman.presentation.tools.transition.{MorphTransition, ReplaceTransition, TextTransition}
 
 object Main extends IOApp.Simple {
 
@@ -27,6 +27,7 @@ object Main extends IOApp.Simple {
       .addSlide(CascadingFailure1().toSlide)
       .addSlide(CascadingFailure2().toSlide)
       .addSlide(CascadingFailure3().toSlide)
+      //.addTransitions(right = MorphTransition[IO]())
       .addSlide(Cause().toSlide)
       .addSlide(TimeoutDoBetter1().toSlide)
       .addSlide(TimeoutDoBetter2().toSlide)

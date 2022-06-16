@@ -19,14 +19,14 @@ object ReplaceTransition {
           val distortedText = distortTheText(distortionRate, text, replace)
           NConsole[F].clear() >>
             NConsole[F].writeStringCenterAligned(distortedText) >>
-            Temporal[F].sleep(200.milli) >>
+            Temporal[F].sleep(150.milli) >>
             distort(distortionRate * 2, distortedText)
         }
       }
 
       for {
         slide1 <- from.content
-        _ <- NConsole[F].writeStringCenterAligned(slide1) >> Temporal[F].sleep(2.seconds) >> distort(0.01, slide1)
+        _ <- NConsole[F].writeStringCenterAligned(slide1)  >> distort(0.01, slide1)
       } yield ()
     }
   }
