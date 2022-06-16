@@ -3,6 +3,7 @@ package presentation.tools.transition
 
 import presentation.tools.{NConsole, Slide}
 
+import cats.Monad
 import cats.effect.kernel.Temporal
 import cats.implicits._
 
@@ -13,12 +14,12 @@ object ReplaceTransition {
   def apply[F[_] : Temporal : NConsole](replace: Char): Transition[F] = new Transition[F] {
     override def transition(from: Slide[F], to: Slide[F]): F[Unit] = {
       def distort(distortionRate: Double, text: String): F[Unit] = {
-        if (distortionRate > 2) {
-          NConsole[F].clear()
+        if (distortionRate > 10) {
+          Monad[F].unit
         } else {
           val distortedText = distortTheText(distortionRate, text, replace)
           NConsole[F].clear() >>
-            NConsole[F].writeStringCenterAligned(distortedText) >>
+            NConsole[F].writeString(distortedText) >>
             Temporal[F].sleep(150.milli) >>
             distort(distortionRate * 2, distortedText)
         }
@@ -26,7 +27,8 @@ object ReplaceTransition {
 
       for {
         slide1 <- from.content
-        _ <- NConsole[F].writeStringCenterAligned(slide1)  >> distort(0.01, slide1) >> Temporal[F].sleep(1.seconds)
+        from <- NConsole[F].centerAlignText(slide1)
+        _ <- NConsole[F].writeString(from)  >> distort(0.01, from) >> Temporal[F].sleep(1.seconds)
       } yield ()
     }
   }
