@@ -26,7 +26,7 @@ object ReplaceTransition {
 
       for {
         slide1 <- from.content
-        _ <- NConsole[F].writeStringCenterAligned(slide1)  >> distort(0.01, slide1)
+        _ <- NConsole[F].writeStringCenterAligned(slide1)  >> distort(0.01, slide1) >> Temporal[F].sleep(1.seconds)
       } yield ()
     }
   }

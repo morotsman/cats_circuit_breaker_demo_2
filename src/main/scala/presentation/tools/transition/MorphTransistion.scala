@@ -22,7 +22,7 @@ object MorphTransition {
           NConsole[F].clear() >>
             NConsole[F].writeString(morphedText) >>
             Temporal[F].sleep(100.milli) >>
-            morph(distortionRate * 1.1, morphedText, to)
+            morph(distortionRate * 1.7, morphedText, to)
         }
       }
 
