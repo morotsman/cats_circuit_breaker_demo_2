@@ -15,7 +15,7 @@ final case class SlideAndTransition[F[_]](
 
 sealed trait BuildState
 
-sealed trait NotStarted extends BuildState
+sealed trait Empty extends BuildState
 
 sealed trait SlideAdded extends BuildState
 
@@ -48,7 +48,7 @@ case class PresentationBuilder[F[_] : Temporal : NConsole: Sync, State <: BuildS
 }
 
 object PresentationBuilder {
-  def apply[F[_] : Temporal : NConsole: Sync](): PresentationBuilder[F, NotStarted] =
-    PresentationBuilder[F, NotStarted](None, List.empty)
+  def apply[F[_] : Temporal : NConsole: Sync](): PresentationBuilder[F, Empty] =
+    PresentationBuilder[F, Empty](None, List.empty)
 }
 
