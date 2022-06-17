@@ -3,7 +3,6 @@ package presentation.tools.transition
 
 import presentation.tools.{NConsole, Slide}
 
-import cats.Monad
 import cats.effect.kernel.Temporal
 import cats.implicits._
 
@@ -39,7 +38,7 @@ object MorphTransition {
 
   private def morphTheText(distortionRate: Double, from: String, to: String): String = {
     val number = (from.length * distortionRate).toInt
-    val numbers = Array.fill(number)(Random.nextInt(from.length))
+    val numbers = Array.fill(number)(Random.nextInt(from.length)).toSet
     from.zipWithIndex.map { case (c, index) => if (numbers.contains(index))
       to.charAt(index)
     else c

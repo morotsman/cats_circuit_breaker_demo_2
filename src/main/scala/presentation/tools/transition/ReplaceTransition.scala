@@ -35,7 +35,7 @@ object ReplaceTransition {
 
   private def distortTheText(distortionRate: Double, text: String, replace: Char): String = {
     val number = (text.length * distortionRate).toInt
-    val numbers = Array.fill(number)(Random.nextInt(text.length))
+    val numbers = Array.fill(number)(Random.nextInt(text.length)).toSet
     text.zipWithIndex.map { case (c, index) => if (numbers.contains(index) && c != '\n') {
       replace
     } else c

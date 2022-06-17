@@ -1,8 +1,10 @@
 package com.github.morotsman
 package presentation.tools
 
-import cats.effect.Temporal
+import cats.effect.{Sync, Temporal}
 import presentation.tools.transition.Transition
+
+import com.github.morotsman.presentation.tools.SimpleSlide.ToSimpleSlide
 
 final case class SlideAndTransition[F[_]](
                                            left: Option[Transition[F]],
@@ -19,7 +21,7 @@ sealed trait Started extends BuildState
 
 sealed trait InProgress extends Started
 
-case class PresentationBuilder[F[_] : Temporal : NConsole, State <: BuildState](
+case class PresentationBuilder[F[_] : Temporal : NConsole: Sync, State <: BuildState](
                                                                                  ongoing: Option[SlideAndTransition[F]],
                                                                                  sat: List[SlideAndTransition[F]]
                                                                                ) {
@@ -28,6 +30,9 @@ case class PresentationBuilder[F[_] : Temporal : NConsole, State <: BuildState](
       Option(SlideAndTransition(None, slide, None)),
       ongoing.fold(sat)(_ :: sat)
     )
+
+  def addSlide(s: String): PresentationBuilder[F, InProgress] =
+    addSlide(s.toSlide)
 
   def build()(implicit ev: State <:< Started): F[Presentation[F]] =
     Presentation.make[F](ongoing.fold(sat)(_ :: sat).reverse)
@@ -45,7 +50,7 @@ case class PresentationBuilder[F[_] : Temporal : NConsole, State <: BuildState](
 }
 
 object PresentationBuilder {
-  def apply[F[_] : Temporal : NConsole](): PresentationBuilder[F, NotStarted] =
+  def apply[F[_] : Temporal : NConsole: Sync](): PresentationBuilder[F, NotStarted] =
     PresentationBuilder[F, NotStarted](None, List.empty)
 }
 
