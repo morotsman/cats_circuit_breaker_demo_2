@@ -17,31 +17,29 @@ sealed trait BuildState
 
 sealed trait NotStarted extends BuildState
 
-sealed trait Started extends BuildState
-
-sealed trait InProgress extends Started
+sealed trait SlideAdded extends BuildState
 
 case class PresentationBuilder[F[_] : Temporal : NConsole: Sync, State <: BuildState](
                                                                                  ongoing: Option[SlideAndTransition[F]],
                                                                                  sat: List[SlideAndTransition[F]]
                                                                                ) {
-  def addSlide(slide: Slide[F]): PresentationBuilder[F, InProgress] =
-    PresentationBuilder[F, InProgress](
+  def addSlide(slide: Slide[F]): PresentationBuilder[F, SlideAdded] =
+    PresentationBuilder[F, SlideAdded](
       Option(SlideAndTransition(None, slide, None)),
       ongoing.fold(sat)(_ :: sat)
     )
 
-  def addSlide(s: String): PresentationBuilder[F, InProgress] =
+  def addSlide(s: String): PresentationBuilder[F, SlideAdded] =
     addSlide(s.toSlide)
 
-  def build()(implicit ev: State <:< Started): F[Presentation[F]] =
+  def build()(implicit ev: State <:< SlideAdded): F[Presentation[F]] =
     Presentation.make[F](ongoing.fold(sat)(_ :: sat).reverse)
 
   def addTransitions(
                       left: Transition[F] = null,
                       right: Transition[F] = null
-                    )(implicit ev: State =:= InProgress): PresentationBuilder[F, Started] = {
-    PresentationBuilder[F, Started](
+                    )(implicit ev: State =:= SlideAdded): PresentationBuilder[F, SlideAdded] = {
+    PresentationBuilder[F, SlideAdded](
       None,
       ongoing.fold(sat)(_.copy(left = Option(left), right = Option(right)) :: sat)
     )
