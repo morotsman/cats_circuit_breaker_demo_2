@@ -4,8 +4,6 @@ package presentation.tools
 import cats.effect.Sync
 import cats.implicits._
 
-case class SimpleSlideState()
-
 object SimpleSlide {
   def apply[F[_] : Sync : NConsole](slideContent: String): Slide[F] =
     new Slide[F] {
